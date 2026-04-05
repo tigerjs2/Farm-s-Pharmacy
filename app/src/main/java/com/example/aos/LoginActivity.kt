@@ -26,6 +26,10 @@ class LoginActivity : AppCompatActivity() {
 
         val loginButton = findViewById<Button>(R.id.loginButton)
         val signupText = findViewById<TextView>(R.id.signupText)
+        val titleText = findViewById<TextView>(R.id.titleText)
+
+        setupTitleText(titleText)
+        setupSignupText(signupText)
 
         mAuth = FirebaseAuth.getInstance()
 
@@ -51,9 +55,22 @@ class LoginActivity : AppCompatActivity() {
                     }
                 }
         }
+    }
 
-        // 회원가입 텍스트 클릭
-        setupSignupText(signupText)
+    private fun setupTitleText(textView: TextView) {
+        val fullText = "농장의 파머씨"
+        val spannable = SpannableString(fullText)
+
+        val greenColor = ContextCompat.getColor(this, R.color.primary_green)
+        val lightColor = ContextCompat.getColor(this, R.color.primary_light)
+
+        val start = fullText.indexOf("파머")
+
+        spannable.setSpan(ForegroundColorSpan(lightColor), 0, start, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        spannable.setSpan(ForegroundColorSpan(greenColor), start, start + 2, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        spannable.setSpan(ForegroundColorSpan(lightColor), start + 2, fullText.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+
+        textView.text = spannable
     }
 
     private fun setupSignupText(textView: TextView) {
@@ -66,7 +83,7 @@ class LoginActivity : AppCompatActivity() {
             }
             override fun updateDrawState(ds: android.text.TextPaint) {
                 super.updateDrawState(ds)
-                ds.color = ContextCompat.getColor(this@LoginActivity, R.color.primary_green)
+                ds.color = ContextCompat.getColor(this@LoginActivity, R.color.primary_light)
                 ds.isUnderlineText = false
             }
         }

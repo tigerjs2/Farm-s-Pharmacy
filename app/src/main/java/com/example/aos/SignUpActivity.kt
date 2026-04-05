@@ -98,7 +98,7 @@ class SignUpActivity : AppCompatActivity() {
             }
             override fun updateDrawState(ds: android.text.TextPaint) {
                 super.updateDrawState(ds)
-                ds.color = ContextCompat.getColor(this@SignUpActivity, R.color.primary_green)
+                ds.color = ContextCompat.getColor(this@SignUpActivity, R.color.primary_light)
                 ds.isUnderlineText = false
             }
         }
