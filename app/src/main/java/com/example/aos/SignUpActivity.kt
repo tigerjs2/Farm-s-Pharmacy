@@ -14,6 +14,9 @@ import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.Firebase
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.firestore
 
 class SignUpActivity : AppCompatActivity() {
 
@@ -53,10 +56,29 @@ class SignUpActivity : AppCompatActivity() {
             mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
-                        Toast.makeText(this, "회원가입 성공", Toast.LENGTH_SHORT).show()
+                        val uid = mAuth.currentUser!!.uid
+                        val name = findViewById<EditText>(R.id.nameEditText).text.toString()
 
-                        startActivity(Intent(this, MainActivity::class.java))
-                        finish()
+                        val user = hashMapOf(
+                            "email" to email,
+                            "name" to name,
+                            "createdAt" to FieldValue.serverTimestamp(),
+                            "farmLocation" to "",
+                            "profileImageUrl" to ""
+                        )
+
+                        Firebase.firestore
+                            .collection("Users")
+                            .document(uid)
+                            .set(user)
+                            .addOnSuccessListener {
+                                Toast.makeText(this, "회원가입 성공", Toast.LENGTH_SHORT).show()
+                                startActivity(Intent(this, MainActivity::class.java))
+                                finish()
+                            }
+                            .addOnFailureListener { e ->
+                                Toast.makeText(this, "DB 저장 실패: ${e.message}", Toast.LENGTH_SHORT).show()
+                            }
                     } else {
                         Toast.makeText(this, "회원가입 실패: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
                     }
