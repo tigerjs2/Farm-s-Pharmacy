@@ -10,10 +10,15 @@ import android.text.style.ForegroundColorSpan
 import android.view.View
 import android.widget.Button
 import android.widget.TextView
+import android.widget.Toast
+import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import com.google.firebase.auth.FirebaseAuth
 
 class LoginActivity : AppCompatActivity() {
+
+    lateinit var mAuth: FirebaseAuth
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,10 +31,29 @@ class LoginActivity : AppCompatActivity() {
         setupTitleText(titleText)
         setupSignupText(signupText)
 
+        mAuth = FirebaseAuth.getInstance()
+
         loginButton.setOnClickListener {
-            val intent = Intent(this, MainActivity::class.java)
-            startActivity(intent)
-            finish()
+
+            val email = findViewById<EditText>(R.id.emailEditText).text.toString()
+            val password = findViewById<EditText>(R.id.passwordEditText).text.toString()
+
+            if (email.isEmpty() || password.isEmpty()) {
+                Toast.makeText(this, "이메일/비밀번호 입력", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            mAuth.signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        Toast.makeText(this, "로그인 성공", Toast.LENGTH_SHORT).show()
+
+                        startActivity(Intent(this, MainActivity::class.java))
+                        finish()
+                    } else {
+                        Toast.makeText(this, "로그인 실패: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
+                    }
+                }
         }
     }
 
