@@ -33,6 +33,12 @@ class LoginActivity : AppCompatActivity() {
 
         mAuth = FirebaseAuth.getInstance()
 
+        if (mAuth.currentUser != null) {
+            startActivity(Intent(this, MainActivity::class.java))
+            finish()
+            return
+        }
+
         loginButton.setOnClickListener {
 
             val email = findViewById<EditText>(R.id.emailEditText).text.toString()
