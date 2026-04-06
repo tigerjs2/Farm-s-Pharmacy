@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingTop="60dp"
+    android:paddingHorizontal="32dp"
+    android:paddingBottom="24dp">
+
+    <!-- 프로필 아이콘 + 이름 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingBottom="24dp">
+
+        <TextView
+            android:id="@+id/tvProfileName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="김오이"
+            android:textSize="48sp"
+            android:fontFamily="@font/paperlogy_7bold"
+            android:textColor="@color/primary_green"/>
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_profile"/>
+
+    </LinearLayout>
+
+    <!-- 구분선 -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/gray"/>
+
+    <!-- 내 정보 확인 -->
+    <TextView
+        android:id="@+id/tvMyInfo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="내 정보 확인"
+        android:textSize="20sp"
+        android:fontFamily="@font/paperlogy_7bold"
+        android:textColor="@color/black"
+        android:paddingVertical="20dp"/>
+
+    <!-- 구분선 -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/gray"/>
+
+    <!-- 로그아웃 -->
+    <TextView
+        android:id="@+id/tvLogout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="로그아웃"
+        android:textSize="20sp"
+        android:fontFamily="@font/paperlogy_7bold"
+        android:textColor="@color/black"
+        android:paddingVertical="20dp"/>
+
+    <!-- 구분선 -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/gray"/>
+
+</LinearLayout>
