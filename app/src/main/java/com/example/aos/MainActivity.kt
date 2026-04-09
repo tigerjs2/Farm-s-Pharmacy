@@ -1,58 +1,45 @@
 package com.example.aos
 
 import android.os.Bundle
-import android.widget.TextView
+import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.Firebase
-import com.google.firebase.firestore.firestore
-import java.util.Calendar
+import androidx.fragment.app.Fragment
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var mAuth: FirebaseAuth
+    private lateinit var navItems: List<LinearLayout>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        mAuth = FirebaseAuth.getInstance()
+        val navHome = findViewById<LinearLayout>(R.id.navHome)
+        val navCamera = findViewById<LinearLayout>(R.id.navCamera)
+        val navCalendar = findViewById<LinearLayout>(R.id.navCalendar)
+        val navGuide = findViewById<LinearLayout>(R.id.navGuide)
+        val navMap = findViewById<LinearLayout>(R.id.navMap)
 
-        loadUserName()
-        updateCalendar()
+        navItems = listOf(navHome, navCamera, navCalendar, navGuide, navMap)
 
-        findViewById<android.widget.ImageView>(R.id.ivProfile).setOnClickListener {
-            startActivity(android.content.Intent(this, ProfileActivity::class.java))
+        if (savedInstanceState == null) {
+            loadFragment(HomeFragment(), navHome)
         }
+
+        navHome.setOnClickListener { loadFragment(HomeFragment(), it as LinearLayout) }
+        navCamera.setOnClickListener { loadFragment(CameraFragment(), it as LinearLayout) }
+        navCalendar.setOnClickListener { /* TODO */ }
+        navGuide.setOnClickListener { /* TODO */ }
+        navMap.setOnClickListener { /* TODO */ }
     }
 
-    override fun onResume() {
-        super.onResume()
-        loadUserName()
-    }
+    private fun loadFragment(fragment: Fragment, selected: LinearLayout) {
+        // 전부 초기화
+        navItems.forEach { it.setBackgroundResource(0) }
+        // 선택된 탭만 초록
+        selected.setBackgroundResource(R.drawable.nav_item_selected)
 
-    private fun loadUserName() {
-        val uid = mAuth.currentUser?.uid ?: return
-        val tvGreeting = findViewById<TextView>(R.id.tvGreeting)
-
-        Firebase.firestore
-            .collection("Users")
-            .document(uid)
-            .get()
-            .addOnSuccessListener { document ->
-                val name = document.getString("name") ?: "농부"
-                tvGreeting.text = "Hello, ${name}님!"
-            }
-            .addOnFailureListener {
-                tvGreeting.text = "안녕하세요!"
-            }
-    }
-
-    private fun updateCalendar() {
-        // 실제 날짜 기반으로 캘린더 업데이트 (현재는 하드코딩 상태)
-        // 추후 동적 날짜 연동 가능
-        val calendar = Calendar.getInstance()
-        val today = calendar.get(Calendar.DAY_OF_MONTH)
-        // TODO: 날짜 TextView 동적 업데이트
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.fragmentContainer, fragment)
+            .commit()
     }
 }
