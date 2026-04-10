@@ -35,6 +35,11 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
+    packaging {
+        resources {
+            excludes += "META-INF/gradle/incremental.annotation.processors"
+        }
+    }
 }
 
 dependencies {
@@ -50,9 +55,17 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore-ktx")
     implementation("com.google.firebase:firebase-storage-ktx")
     implementation("com.github.bumptech.glide:glide:4.16.0")
+    implementation(libs.androidx.camera.view)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+    val camerax_version = "1.3.1"
+    implementation("androidx.camera:camera-core:$camerax_version")
+    implementation("androidx.camera:camera-camera2:$camerax_version")
+    implementation("androidx.camera:camera-lifecycle:$camerax_version")
+    implementation("androidx.camera:camera-view:$camerax_version")
+
+    implementation("com.google.guava:guava:31.1-android")
 }
 
 //test

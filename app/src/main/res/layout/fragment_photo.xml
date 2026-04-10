@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/transparent"
+    tools:ignore="ExtraText">
+
+    <!-- 배경 + 프레임 -->
+    <ImageView
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:src="@drawable/bg_camera"
+    android:scaleType="centerCrop"/>
+    <!-- 카메라 프리뷰 (배경 뒤에 깔림) -->
+    <androidx.camera.view.PreviewView
+        android:id="@+id/previewView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
+    <!-- 배경 PNG 다시 위에 올려서 프레임 보이게 -->
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:src="@drawable/bg_camera"
+        android:scaleType="centerCrop"/>
+
+    <!-- 타이틀 -->
+    <TextView
+        android:id="@+id/tvCropTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="30dp"
+        android:layout_marginTop="70dp"
+        android:text="오이 잎 촬영"
+        android:textSize="50sp"
+        android:textColor="#FFFFFF"
+        android:fontFamily="@font/paperlogy_3light"/>
+
+    <!-- 부제목 -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="30dp"
+        android:layout_marginTop="135dp"
+        android:text="감염 의심 부위가 잘 보이도록 촬영해주세요"
+        android:textSize="17sp"
+        android:textColor="#DDDDDD"
+        android:fontFamily="@font/paperlogy_4regular"/>
+
+    <!-- 촬영 버튼 -->
+    <ImageButton
+        android:id="@+id/captureButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="90dp"
+        android:background="@drawable/camera_button"
+        android:contentDescription="촬영"/>
+
+</FrameLayout>
