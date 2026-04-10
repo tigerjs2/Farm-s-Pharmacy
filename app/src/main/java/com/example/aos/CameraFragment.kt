@@ -27,8 +27,10 @@ class CameraFragment : Fragment() {
 
         crops.forEach { (btn, cropName) ->
             btn.setOnClickListener {
-                // TODO: 촬영 화면으로 이동 (cropName 전달)
-                Toast.makeText(requireContext(), "${cropName} 선택됨", Toast.LENGTH_SHORT).show()
+                parentFragmentManager.beginTransaction()
+                    .replace(R.id.fragmentContainer, PhotoFragment.newInstance(cropName))
+                    .addToBackStack(null)
+                    .commit()
             }
         }
 
