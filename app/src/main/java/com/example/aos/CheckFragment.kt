@@ -8,13 +8,13 @@ import android.widget.ImageButton
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 
-class CameraFragment : Fragment() {
+class CheckFragment : Fragment() {
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val view = inflater.inflate(R.layout.fragment_camera, container, false)
+        val view = inflater.inflate(R.layout.fragment_check, container, false)
 
         val crops = listOf(
             view.findViewById<ImageButton>(R.id.btnCucumber) to "오이",
@@ -27,16 +27,18 @@ class CameraFragment : Fragment() {
 
         crops.forEach { (btn, cropName) ->
             btn.setOnClickListener {
-                // TODO: 촬영 화면으로 이동 (cropName 전달)
-                Toast.makeText(requireContext(), "${cropName} 선택됨", Toast.LENGTH_SHORT).show()
+                // TODO: 해당 작물 기록 목록 화면으로 이동
+                Toast.makeText(requireContext(), "${cropName} 기록 조회", Toast.LENGTH_SHORT).show()
             }
         }
 
-        view.findViewById<ImageButton>(R.id.btnCheckRecord).setOnClickListener {
+        view.findViewById<ImageButton>(R.id.btnCamera).setOnClickListener {
+            // 촬영하기 → CameraFragment로 복귀
             parentFragmentManager.beginTransaction()
-                .replace(R.id.fragmentContainer, CheckFragment())
+                .replace(R.id.fragmentContainer, CameraFragment())
                 .commit()
         }
+
         return view
     }
 }

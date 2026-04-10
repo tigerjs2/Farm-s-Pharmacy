@@ -13,12 +13,11 @@
         android:paddingBottom="32dp"
         android:paddingHorizontal="24dp">
 
-        <!-- 타이틀 -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:text="작물 선택"
+            android:text="지난 기록 확인하기"
             android:textSize="48sp"
             android:textColor="@color/primary_green"
             android:fontFamily="@font/paperlogy_3light"
@@ -28,7 +27,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:text="병해 진단을 원하는 작물을 선택해주세요."
+            android:text="조회하고 싶은 작물을 선택해주세요."
             android:textSize="20sp"
             android:textColor="#C0B5BF"
             android:fontFamily="@font/paperlogy_3light"
@@ -109,14 +108,14 @@
 
         </LinearLayout>
 
-        <!-- 지난 기록 확인하기 버튼 -->
+        <!-- 촬영하기 버튼 -->
         <ImageButton
-            android:id="@+id/btnCheckRecord"
+            android:id="@+id/btnCamera"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@drawable/b_cam_check"
+            android:background="@drawable/b_cam_camera"
             android:layout_gravity="center_horizontal"
-            android:contentDescription="지난 기록 확인하기"/>
+            android:contentDescription="촬영하기"/>
 
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>
