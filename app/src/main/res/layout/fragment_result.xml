@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="24dp"
+    android:background="@color/white">
+
+    <!-- 로고 -->
+    <TextView
+        android:id="@+id/logoTop"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="17dp"
+        android:text="농장의 파머씨"
+        android:textSize="37.5sp"
+        android:fontFamily="@font/paperlogy_5medium"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- 촬영 이미지 -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/imageCard"
+        android:layout_width="372dp"
+        android:layout_height="490dp"
+        android:layout_marginTop="10dp"
+        app:cardCornerRadius="46dp"
+        app:cardElevation="0dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/logoTop">
+
+        <ImageView
+            android:id="@+id/resultImageView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:contentDescription="진단 이미지" />
+
+    </androidx.cardview.widget.CardView>
+
+    <!-- 진단 결과 -->
+    <TextView
+        android:id="@+id/diseaseNameTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
+        android:text="병"
+        android:textSize="30sp"
+        android:fontFamily="@font/paperlogy_7bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/imageCard" />
+
+    <TextView
+        android:id="@+id/textLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="-2dp"
+        android:text="이 의심돼요"
+        android:textSize="30sp"
+        android:fontFamily="@font/paperlogy_7bold"
+        app:layout_constraintStart_toEndOf="@id/diseaseNameTextView"
+        app:layout_constraintBaseline_toBaselineOf="@id/diseaseNameTextView" />
+
+    <!-- 신뢰도 -->
+    <TextView
+        android:id="@+id/confidenceTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
+        android:translationY="-10dp"
+        android:text="00%"
+        android:textSize="61sp"
+        android:fontFamily="@font/paperlogy_7bold"
+        android:maxLines="1"
+        android:singleLine="true"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/diseaseNameTextView"
+        app:layout_constraintBottom_toBottomOf="@id/diseaseNameTextView" />
+
+    <!-- 설명 -->
+    <TextView
+        android:id="@+id/descriptionTextView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
+        android:text="설명"
+        android:textSize="52.43px"
+        android:textColor="@color/black"
+        android:lineSpacingExtra="4dp"
+        android:fontFamily="@font/paperlogy_4regular"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/diseaseNameTextView" />
+
+    <!-- 자세히 알아보기 -->
+    <LinearLayout
+        android:id="@+id/detailButtonLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="5dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <!-- 화살표 이미지 -->
+        <ImageView
+            android:id="@+id/detailButtonImage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_scroll"
+            android:contentDescription="자세히 알아보기" />
+
+        <!-- 텍스트 컨테이너 (세로) -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:orientation="vertical">
+
+            <!-- "스크롤하여" -->
+            <TextView
+                android:id="@+id/scrollText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="스크롤하여"
+                android:fontFamily="@font/paperlogy_7bold"
+                android:textSize="25sp"
+                android:textColor="@color/primary_light"
+                android:includeFontPadding="false"
+                android:lineSpacingExtra="0dp" />
+
+            <!-- "자세히 알아보기" -->
+            <TextView
+                android:id="@+id/detailText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="자세히 알아보기"
+                android:fontFamily="@font/paperlogy_7bold"
+                android:textSize="36sp"
+                android:textColor="@color/primary_green"
+                android:includeFontPadding="false"
+                android:lineSpacingExtra="0dp" />
+        </LinearLayout>
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

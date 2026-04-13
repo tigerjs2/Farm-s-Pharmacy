@@ -102,8 +102,47 @@ class PhotoFragment : Fragment() {
     }
 
     private fun takePhoto() {
-        // TODO: 촬영 후 결과 화면으로 이동
-        Toast.makeText(requireContext(), "${cropName} 촬영!", Toast.LENGTH_SHORT).show()
+        val imageCapture = imageCapture ?: return
+
+        val photoFile = java.io.File(
+            requireContext().cacheDir,
+            "${cropName}_${System.currentTimeMillis()}.jpg"
+        )
+
+        val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
+
+        imageCapture.takePicture(
+            outputOptions,
+            ContextCompat.getMainExecutor(requireContext()),
+            object : ImageCapture.OnImageSavedCallback {
+                override fun onImageSaved(output: ImageCapture.OutputFileResults) {
+                    val savedUri = output.savedUri
+                        ?: android.net.Uri.fromFile(photoFile)
+
+                    // TODO: 실제 AI 추론 결과로 교체
+                    val diagType   = "DISEASE"         // "NORMAL" | "DISEASE" | "UNKNOWN"
+                    val label      = "노균병"
+                    val confidence = 92
+
+                    val intent = android.content.Intent(requireContext(), ResultActivity::class.java).apply {
+                        putExtra("imageUri",   savedUri.toString())
+                        putExtra("cropName",   cropName)
+                        putExtra("diagType",   diagType)
+                        putExtra("label",      label)
+                        putExtra("confidence", confidence)
+                    }
+                    startActivity(intent)
+                }
+
+                override fun onError(exc: ImageCaptureException) {
+                    android.widget.Toast.makeText(
+                        requireContext(),
+                        "촬영 실패: ${exc.message}",
+                        android.widget.Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        )
     }
 
     override fun onDestroy() {
