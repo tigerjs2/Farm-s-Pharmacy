@@ -1,8 +1,15 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     // firebase 연동
     id("com.google.gms.google-services")
+}
+
+val localProperties = Properties().apply {
+    val f = rootProject.file("local.properties")
+    if (f.exists()) load(f.inputStream())
 }
 
 android {
@@ -17,6 +24,8 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField("String", "DISEASE_API_KEY", "\"${localProperties["DISEASE_API_KEY"] ?: ""}\"")
     }
 
     buildTypes {
@@ -35,6 +44,10 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
+    buildFeatures {
+        buildConfig = true
+    }
+
     packaging {
         resources {
             excludes += "META-INF/gradle/incremental.annotation.processors"
@@ -67,6 +80,14 @@ dependencies {
 
     implementation("com.google.guava:guava:31.1-android")
     implementation("com.google.code.gson:gson:2.10.1")
+
+    // HTTP 클라이언트 (병해 API 호출)
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
+    // 코루틴
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
 }
 
 //test

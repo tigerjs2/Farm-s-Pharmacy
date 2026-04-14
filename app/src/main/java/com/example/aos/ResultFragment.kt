@@ -14,6 +14,10 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class ResultFragment : Fragment() {
 
@@ -23,13 +27,15 @@ class ResultFragment : Fragment() {
         private const val ARG_DIAG_TYPE  = "diagType"
         private const val ARG_LABEL      = "label"
         private const val ARG_CONFIDENCE = "confidence"
+        private const val ARG_SICK_KEY   = "sickKey"
 
         fun newInstance(
             imageUri: String?,
             cropName: String,
             diagType: String,
             label: String,
-            confidence: Int
+            confidence: Int,
+            sickKey: String
         ): ResultFragment {
             val fragment = ResultFragment()
             fragment.arguments = Bundle().apply {
@@ -38,6 +44,7 @@ class ResultFragment : Fragment() {
                 putString(ARG_DIAG_TYPE,  diagType)
                 putString(ARG_LABEL,      label)
                 putInt(ARG_CONFIDENCE,    confidence)
+                putString(ARG_SICK_KEY,   sickKey)
             }
             return fragment
         }
@@ -56,6 +63,7 @@ class ResultFragment : Fragment() {
         val diagType   = arguments?.getString(ARG_DIAG_TYPE) ?: "UNKNOWN"
         val label      = arguments?.getString(ARG_LABEL) ?: ""
         val confidence = arguments?.getInt(ARG_CONFIDENCE) ?: 0
+        val sickKey    = arguments?.getString(ARG_SICK_KEY) ?: ""
 
         // 로고 투톤
         val logoText = view.findViewById<TextView>(R.id.logoTop)
@@ -105,7 +113,19 @@ class ResultFragment : Fragment() {
                 tvConfidence.setTextColor(Color.parseColor("#FFCC00"))
                 tvLabel.text = "이 의심돼요"
                 tvLabel.setTextColor(Color.parseColor("#000000"))
-                tvDesc.text = getDummyBriefDesc() // TODO: API 교체
+
+                if (sickKey.isNotEmpty()) {
+                    tvDesc.text = "불러오는 중..."
+                    lifecycleScope.launch {
+                        val detail = withContext(Dispatchers.IO) {
+                            DiseaseApiService.getDetail(sickKey)
+                        }
+                        tvDesc.text = detail?.developmentCondition?.ifBlank { null }
+                            ?: "정보를 불러올 수 없습니다."
+                    }
+                } else {
+                    tvDesc.text = "병해 정보를 불러올 수 없습니다."
+                }
             }
             else -> { // UNKNOWN
                 tvDiseaseName.text = ""
@@ -116,8 +136,4 @@ class ResultFragment : Fragment() {
             }
         }
     }
-
-    // TODO: API 교체
-    private fun getDummyBriefDesc() =
-        "잎 표면에 처음에는 퇴록된 부정형 반점이 생기고, 감염부위가 담황색을 띱니다."
 }
