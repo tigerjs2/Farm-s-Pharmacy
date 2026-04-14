@@ -29,7 +29,8 @@ class ResultFragment : Fragment() {
             cropName: String,
             diagType: String,
             label: String,
-            confidence: Int
+            confidence: Int,
+            briefDesc: String = ""
         ): ResultFragment {
             val fragment = ResultFragment()
             fragment.arguments = Bundle().apply {
@@ -38,6 +39,7 @@ class ResultFragment : Fragment() {
                 putString(ARG_DIAG_TYPE,  diagType)
                 putString(ARG_LABEL,      label)
                 putInt(ARG_CONFIDENCE,    confidence)
+                putString("briefDesc",    briefDesc)
             }
             return fragment
         }
@@ -56,6 +58,7 @@ class ResultFragment : Fragment() {
         val diagType   = arguments?.getString(ARG_DIAG_TYPE) ?: "UNKNOWN"
         val label      = arguments?.getString(ARG_LABEL) ?: ""
         val confidence = arguments?.getInt(ARG_CONFIDENCE) ?: 0
+        val briefDesc = arguments?.getString("briefDesc") ?: ""
 
         // 로고 투톤
         val logoText = view.findViewById<TextView>(R.id.logoTop)
@@ -105,7 +108,7 @@ class ResultFragment : Fragment() {
                 tvConfidence.setTextColor(Color.parseColor("#FFCC00"))
                 tvLabel.text = "이 의심돼요"
                 tvLabel.setTextColor(Color.parseColor("#000000"))
-                tvDesc.text = getDummyBriefDesc() // TODO: API 교체
+                tvDesc.text = briefDesc.ifEmpty { "병해 정보를 불러오는 중..." }
             }
             else -> { // UNKNOWN
                 tvDiseaseName.text = ""
@@ -116,8 +119,4 @@ class ResultFragment : Fragment() {
             }
         }
     }
-
-    // TODO: API 교체
-    private fun getDummyBriefDesc() =
-        "잎 표면에 처음에는 퇴록된 부정형 반점이 생기고, 감염부위가 담황색을 띱니다."
 }

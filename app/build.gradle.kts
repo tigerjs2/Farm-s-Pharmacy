@@ -66,6 +66,13 @@ dependencies {
     implementation("androidx.camera:camera-view:$camerax_version")
 
     implementation("com.google.guava:guava:31.1-android")
+
+    // Retrofit (병해 진단 API)
+    implementation("com.squareup.retrofit2:retrofit:2.11.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.11.0")
+
+    // 위치 서비스 (FusedLocationProviderClient)
+    implementation("com.google.android.gms:play-services-location:21.3.0")
 }
 
 //test

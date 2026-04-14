@@ -19,10 +19,14 @@ class DetailFragment : Fragment() {
     companion object {
         private const val ARG_CROP_NAME = "cropName"
 
-        fun newInstance(cropName: String): DetailFragment {
+        fun newInstance(cropName: String, diseaseInfo: DiseaseInfo?): DetailFragment {
             val fragment = DetailFragment()
             fragment.arguments = Bundle().apply {
                 putString(ARG_CROP_NAME, cropName)
+                // DiseaseInfo를 개별 필드로 분해해서 전달
+                putStringArrayList("symptoms",   ArrayList(diseaseInfo?.symptoms ?: emptyList()))
+                putStringArrayList("treatments", ArrayList(diseaseInfo?.treatments ?: emptyList()))
+                putStringArrayList("imageUrls",  ArrayList(diseaseInfo?.imageUrls ?: emptyList()))
             }
             return fragment
         }
@@ -50,7 +54,7 @@ class DetailFragment : Fragment() {
         applyActionTitle(view)
 
         // TODO: API 연동 시 bindDummyData() 대신 API 응답값으로 교체
-        bindDummyData(view, cropName)
+        bindApiData(view)
 
         // TODO: API 연동 시 Glide로 이미지 로드
         // Glide.with(this).load(imageUrl1).into(view.findViewById(R.id.ivSymptom1))
@@ -81,19 +85,9 @@ class DetailFragment : Fragment() {
         tv.text = spannable
     }
 
-    private fun bindDummyData(view: View, cropName: String) {
-        val symptoms = listOf(
-            "주로 생육 중기 및 후기의 잎에 발생해요.",
-            "초기에는 잎의 앞면에 퇴록된 작은 부정형 반점이 옅은 황색을 띠고, 잎 뒷면의 병반은 불분명해요.",
-            "아랫 잎에서 먼저 발생되고, 위로 진전되는데 엽맥에 둘러싸인 병반들이 합쳐지면서 커지고 잎이 말라죽어요.",
-            "병든 잎은 잘 떨어지고, 황갈색을 띠어요.",
-            "환경이 적당하면 잎 뒷면에 이슬처럼 보이는 곰팡이가 다량 형성되어 회백색으로 보여요."
-        )
-        val treatments = listOf(
-            "병든 잎은 조기에 제거하여 불에 태우거나 땅속 깊이 묻어요.",
-            "포장을 청결히 하고 잎에 물방울이 장시간 맺혀 있지 않도록 관리해요.",
-            "환기를 철저히 하고 토양이 과습하지 않도록 해요."
-        )
+    private fun bindApiData(view: View) {
+        val symptoms   = arguments?.getStringArrayList("symptoms")   ?: arrayListOf()
+        val treatments = arguments?.getStringArrayList("treatments") ?: arrayListOf()
 
         val symptomContainer = view.findViewById<LinearLayout>(R.id.symptomContainer)
         symptoms.forEach { symptomContainer.addView(makeBulletItem(it)) }

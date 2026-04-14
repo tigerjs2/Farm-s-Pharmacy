@@ -1,6 +1,7 @@
 package com.example.aos
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -16,6 +17,9 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.storage.storage
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -101,6 +105,70 @@ class PhotoFragment : Fragment() {
         }, ContextCompat.getMainExecutor(requireContext()))
     }
 
+    @SuppressLint("MissingPermission")
+    private fun getLocationAndStart(imageUrl: String, localUri: android.net.Uri) {
+        val fusedClient = com.google.android.gms.location.LocationServices
+            .getFusedLocationProviderClient(requireContext())
+
+        fusedClient.lastLocation
+            .addOnSuccessListener { location ->
+                val lat = location?.latitude ?: 0.0
+                val lng = location?.longitude ?: 0.0
+
+                // 역지오코딩 → addressDo, addressSi 추출
+                val geocoder = android.location.Geocoder(requireContext(), java.util.Locale.KOREA)
+                var addressDo = ""
+                var addressSi = ""
+
+                if (lat != 0.0) {
+                    try {
+                        val addresses = geocoder.getFromLocation(lat, lng, 1)
+                        if (!addresses.isNullOrEmpty()) {
+                            val addr = addresses[0]
+                            addressDo = addr.adminArea ?: ""      // 예: "전라남도"
+                            addressSi = addr.locality             // 예: "광주시"
+                                ?: addr.subAdminArea ?: ""
+                        }
+                    } catch (e: Exception) { e.printStackTrace() }
+                }
+
+                // ── 3) ResultActivity로 모든 데이터 전달 ────────
+                val diagType   = "DISEASE"   // TODO: 실제 모델 결과
+                val label      = "노균병"    // TODO: 실제 모델 결과
+                val confidence = 92          // TODO: 실제 모델 결과
+
+                val intent = android.content.Intent(requireContext(), ResultActivity::class.java).apply {
+                    putExtra("imageUri",   localUri.toString())  // 화면 표시용 (로컬)
+                    putExtra("imageUrl",   imageUrl)             // Firestore 저장용 (Storage URL)
+                    putExtra("cropName",   cropName)
+                    putExtra("diagType",   diagType)
+                    putExtra("label",      label)
+                    putExtra("confidence", confidence)
+                    putExtra("latitude",   lat)
+                    putExtra("longitude",  lng)
+                    putExtra("addressDo",  addressDo)
+                    putExtra("addressSi",  addressSi)
+                }
+                startActivity(intent)
+            }
+            .addOnFailureListener {
+                // 위치 수집 실패해도 그냥 진행
+                val intent = android.content.Intent(requireContext(), ResultActivity::class.java).apply {
+                    putExtra("imageUri",   localUri.toString())
+                    putExtra("imageUrl",   imageUrl)
+                    putExtra("cropName",   cropName)
+                    putExtra("diagType",   "DISEASE")
+                    putExtra("label",      "노균병")
+                    putExtra("confidence", 92)
+                    putExtra("latitude",   0.0)
+                    putExtra("longitude",  0.0)
+                    putExtra("addressDo",  "")
+                    putExtra("addressSi",  "")
+                }
+                startActivity(intent)
+            }
+    }
+
     private fun takePhoto() {
         val imageCapture = imageCapture ?: return
 
@@ -116,22 +184,26 @@ class PhotoFragment : Fragment() {
             ContextCompat.getMainExecutor(requireContext()),
             object : ImageCapture.OnImageSavedCallback {
                 override fun onImageSaved(output: ImageCapture.OutputFileResults) {
-                    val savedUri = output.savedUri
-                        ?: android.net.Uri.fromFile(photoFile)
+                    val savedUri = output.savedUri ?: android.net.Uri.fromFile(photoFile)
 
-                    // TODO: 실제 AI 추론 결과로 교체
-                    val diagType   = "DISEASE"         // "NORMAL" | "DISEASE" | "UNKNOWN"
-                    val label      = "노균병"
-                    val confidence = 92
+                    // ── 1) Firebase Storage 업로드 ─────────────────────
+                    val uid = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+                    val fileName = "${uid}_${cropName}_${System.currentTimeMillis()}.jpg"
+                    val storageRef = Firebase.storage.reference
+                        .child("diagnoses/$fileName")
 
-                    val intent = android.content.Intent(requireContext(), ResultActivity::class.java).apply {
-                        putExtra("imageUri",   savedUri.toString())
-                        putExtra("cropName",   cropName)
-                        putExtra("diagType",   diagType)
-                        putExtra("label",      label)
-                        putExtra("confidence", confidence)
-                    }
-                    startActivity(intent)
+                    storageRef.putFile(savedUri)
+                        .addOnSuccessListener {
+                            storageRef.downloadUrl.addOnSuccessListener { downloadUri ->
+
+                                // ── 2) 위치 수집 후 ResultActivity 시작 ───
+                                getLocationAndStart(downloadUri.toString(), savedUri)
+                            }
+                        }
+                        .addOnFailureListener {
+                            // Storage 실패 시 imageUrl 없이라도 진행 (빈 문자열)
+                            getLocationAndStart("", savedUri)
+                        }
                 }
 
                 override fun onError(exc: ImageCaptureException) {
