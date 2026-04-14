@@ -77,9 +77,18 @@ class HistoryActivity : AppCompatActivity() {
 
     private fun loadItemsByCrop(cropName: String): List<HistoryItem> {
         val json = prefs.getString("history_items", null) ?: return emptyList()
-        val type = object : TypeToken<List<HistoryItem>>() {}.type
-        val all: List<HistoryItem> = gson.fromJson(json, type)
-        return all.filter { it.cropName == cropName }
+        if (!json.trimStart().startsWith("[")) {
+            prefs.edit().remove("history_items").apply()
+            return emptyList()
+        }
+        return try {
+            val type = object : TypeToken<List<HistoryItem>>() {}.type
+            val all: List<HistoryItem> = gson.fromJson(json, type)
+            all.filter { it.cropName == cropName }
+        } catch (e: Exception) {
+            prefs.edit().remove("history_items").apply()
+            emptyList()
+        }
     }
 
     private fun setupTitle() {
@@ -148,7 +157,6 @@ class HistoryActivity : AppCompatActivity() {
             val dialog = BottomSheetDialog(this)
             val view = layoutInflater.inflate(R.layout.bottom_sheet_sort, null)
 
-            // 현재 상태 체크 표시
             val checkNewest = view.findViewById<TextView>(R.id.checkNewest)
             val checkOldest = view.findViewById<TextView>(R.id.checkOldest)
             checkNewest.visibility = if (isNewestFirst) View.VISIBLE else View.GONE
