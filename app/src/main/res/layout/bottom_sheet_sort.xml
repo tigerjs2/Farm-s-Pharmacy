@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@drawable/bg_bottom_sheet">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="정렬"
+        android:textSize="18sp"
+        android:textColor="@color/gray"
+        android:fontFamily="@font/paperlogy_5medium"
+        android:paddingBottom="8dp"/>
+
+    <RelativeLayout
+        android:id="@+id/sortNewest"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingVertical="12dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="최신순"
+            android:textSize="20sp"
+            android:textColor="@color/black"
+            android:fontFamily="@font/paperlogy_5medium"/>
+
+        <TextView
+            android:id="@+id/checkNewest"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:text="✓"
+            android:textSize="22sp"
+            android:textColor="@android:color/black"
+            android:visibility="gone"/>
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/sortOldest"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingVertical="12dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="오래된 순"
+            android:textSize="20sp"
+            android:textColor="@color/black"
+            android:fontFamily="@font/paperlogy_5medium"/>
+
+        <TextView
+            android:id="@+id/checkOldest"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:text="✓"
+            android:textSize="22sp"
+            android:textColor="@android:color/black"
+            android:visibility="gone"/>
+
+    </RelativeLayout>
+
+</LinearLayout>

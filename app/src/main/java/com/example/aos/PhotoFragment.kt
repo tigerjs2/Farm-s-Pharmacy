@@ -104,42 +104,59 @@ class PhotoFragment : Fragment() {
     private fun takePhoto() {
         val imageCapture = imageCapture ?: return
 
-        val photoFile = java.io.File(
-            requireContext().cacheDir,
-            "${cropName}_${System.currentTimeMillis()}.jpg"
-        )
+        val contentValues = android.content.ContentValues().apply {
+            put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, "${cropName}_${System.currentTimeMillis()}.jpg")
+            put(android.provider.MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
+            if (android.os.Build.VERSION.SDK_INT > android.os.Build.VERSION_CODES.P) {
+                put(android.provider.MediaStore.Images.Media.RELATIVE_PATH, "Pictures/Farm-s-Pharmacy")
+            }
+        }
 
-        val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
+        val outputOptions = ImageCapture.OutputFileOptions.Builder(
+            requireContext().contentResolver,
+            android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+            contentValues
+        ).build()
 
         imageCapture.takePicture(
             outputOptions,
             ContextCompat.getMainExecutor(requireContext()),
             object : ImageCapture.OnImageSavedCallback {
                 override fun onImageSaved(output: ImageCapture.OutputFileResults) {
-                    val savedUri = output.savedUri
-                        ?: android.net.Uri.fromFile(photoFile)
+                    val savedUri = output.savedUri ?: return
 
-                    // TODO: 실제 AI 추론 결과로 교체
-                    val diagType   = "DISEASE"         // "NORMAL" | "DISEASE" | "UNKNOWN"
-                    val label      = "노균병"
+                    val diagType = "DISEASE"
+                    val label = "노균병"
                     val confidence = 92
 
+                    // HistoryItem 저장
+                    val newItem = HistoryItem(
+                        id = System.currentTimeMillis().toInt(),
+                        imageUri = savedUri.toString(),
+                        diseaseName = label,
+                        confidence = confidence,
+                        date = java.text.SimpleDateFormat("yyyy.MM.dd", java.util.Locale.getDefault()).format(java.util.Date()),
+                        cropName = cropName,
+                        diagType = diagType
+                    )
+                    val prefs = requireContext().getSharedPreferences("HistoryPrefs", android.content.Context.MODE_PRIVATE)
+                    val gson = com.google.gson.Gson()
+                    val current = gson.fromJson(prefs.getString("history_items", "[]"), Array<HistoryItem>::class.java).toMutableList()
+                    current.add(0, newItem)
+                    prefs.edit().putString("history_items", gson.toJson(current)).apply()
+
                     val intent = android.content.Intent(requireContext(), ResultActivity::class.java).apply {
-                        putExtra("imageUri",   savedUri.toString())
-                        putExtra("cropName",   cropName)
-                        putExtra("diagType",   diagType)
-                        putExtra("label",      label)
+                        putExtra("imageUri", savedUri.toString())
+                        putExtra("cropName", cropName)
+                        putExtra("diagType", diagType)
+                        putExtra("label", label)
                         putExtra("confidence", confidence)
                     }
                     startActivity(intent)
                 }
 
                 override fun onError(exc: ImageCaptureException) {
-                    android.widget.Toast.makeText(
-                        requireContext(),
-                        "촬영 실패: ${exc.message}",
-                        android.widget.Toast.LENGTH_SHORT
-                    ).show()
+                    android.widget.Toast.makeText(requireContext(), "촬영 실패: ${exc.message}", android.widget.Toast.LENGTH_SHORT).show()
                 }
             }
         )

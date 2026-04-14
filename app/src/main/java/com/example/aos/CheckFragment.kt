@@ -1,11 +1,11 @@
 package com.example.aos
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 
 class CheckFragment : Fragment() {
@@ -27,13 +27,13 @@ class CheckFragment : Fragment() {
 
         crops.forEach { (btn, cropName) ->
             btn.setOnClickListener {
-                // TODO: 해당 작물 기록 목록 화면으로 이동
-                Toast.makeText(requireContext(), "${cropName} 기록 조회", Toast.LENGTH_SHORT).show()
+                val intent = Intent(requireContext(), HistoryActivity::class.java)
+                intent.putExtra(HistoryActivity.EXTRA_CROP_NAME, cropName)
+                startActivity(intent)
             }
         }
 
         view.findViewById<ImageButton>(R.id.btnCamera).setOnClickListener {
-            // 촬영하기 → CameraFragment로 복귀
             parentFragmentManager.beginTransaction()
                 .replace(R.id.fragmentContainer, CameraFragment())
                 .commit()

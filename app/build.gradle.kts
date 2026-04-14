@@ -66,6 +66,7 @@ dependencies {
     implementation("androidx.camera:camera-view:$camerax_version")
 
     implementation("com.google.guava:guava:31.1-android")
+    implementation("com.google.code.gson:gson:2.10.1")
 }
 
 //test
