@@ -1,9 +1,13 @@
 package com.example.aos
 
 import android.Manifest
-import android.content.pm.PackageManager
+import android.app.ProgressDialog
+import android.content.ContentValues
+import android.content.Context
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.provider.MediaStore
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -16,6 +20,19 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import com.google.firebase.Timestamp
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.FirebaseStorage
+import com.google.gson.Gson
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -36,10 +53,10 @@ class PhotoFragment : Fragment() {
         }
 
         private val REQUIRED_PERMISSIONS = mutableListOf(
-            android.Manifest.permission.CAMERA
+            Manifest.permission.CAMERA
         ).apply {
             if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
-                add(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
             }
         }.toTypedArray()
     }
@@ -62,13 +79,9 @@ class PhotoFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         cropName = arguments?.getString("cropName") ?: ""
-
         previewView = view.findViewById(R.id.previewView)
-
-        // 타이틀 설정
         view.findViewById<TextView>(R.id.tvCropTitle).text = "${cropName} 잎 촬영"
 
-        // 촬영 버튼
         view.findViewById<ImageButton>(R.id.captureButton).setOnClickListener {
             takePhoto()
         }
@@ -80,7 +93,7 @@ class PhotoFragment : Fragment() {
     }
 
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
-        ContextCompat.checkSelfPermission(requireContext(), it) == PackageManager.PERMISSION_GRANTED
+        ContextCompat.checkSelfPermission(requireContext(), it) == android.content.pm.PackageManager.PERMISSION_GRANTED
     }
 
     private fun startCamera() {
@@ -101,20 +114,22 @@ class PhotoFragment : Fragment() {
         }, ContextCompat.getMainExecutor(requireContext()))
     }
 
+    @Suppress("DEPRECATION")
     private fun takePhoto() {
         val imageCapture = imageCapture ?: return
 
-        val contentValues = android.content.ContentValues().apply {
-            put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, "${cropName}_${System.currentTimeMillis()}.jpg")
-            put(android.provider.MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
-            if (android.os.Build.VERSION.SDK_INT > android.os.Build.VERSION_CODES.P) {
-                put(android.provider.MediaStore.Images.Media.RELATIVE_PATH, "Pictures/Farm-s-Pharmacy")
+        val timestamp = System.currentTimeMillis()
+        val contentValues = ContentValues().apply {
+            put(MediaStore.MediaColumns.DISPLAY_NAME, "${cropName}_${timestamp}.jpg")
+            put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
+            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
+                put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/Farm-s-Pharmacy")
             }
         }
 
         val outputOptions = ImageCapture.OutputFileOptions.Builder(
             requireContext().contentResolver,
-            android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
             contentValues
         ).build()
 
@@ -125,38 +140,108 @@ class PhotoFragment : Fragment() {
                 override fun onImageSaved(output: ImageCapture.OutputFileResults) {
                     val savedUri = output.savedUri ?: return
 
+                    // 더미 AI 결과 (TODO: AI 모델 연동 시 교체)
                     val diagType = "DISEASE"
                     val label = "노균병"
-                    val confidence = 92
+                    val confidenceInt = 92
 
-                    // HistoryItem 저장
-                    val newItem = HistoryItem(
-                        id = System.currentTimeMillis().toInt(),
-                        imageUri = savedUri.toString(),
-                        diseaseName = label,
-                        confidence = confidence,
-                        date = java.text.SimpleDateFormat("yyyy.MM.dd", java.util.Locale.getDefault()).format(java.util.Date()),
-                        cropName = cropName,
-                        diagType = diagType
-                    )
-                    val prefs = requireContext().getSharedPreferences("HistoryPrefs", android.content.Context.MODE_PRIVATE)
-                    val gson = com.google.gson.Gson()
-                    val current = gson.fromJson(prefs.getString("history_items", "[]"), Array<HistoryItem>::class.java).toMutableList()
-                    current.add(0, newItem)
-                    prefs.edit().putString("history_items", gson.toJson(current)).apply()
-
-                    val intent = android.content.Intent(requireContext(), ResultActivity::class.java).apply {
-                        putExtra("imageUri", savedUri.toString())
-                        putExtra("cropName", cropName)
-                        putExtra("diagType", diagType)
-                        putExtra("label", label)
-                        putExtra("confidence", confidence)
+                    val progress = ProgressDialog(requireContext()).apply {
+                        setMessage("진단 중...")
+                        setCancelable(false)
+                        show()
                     }
-                    startActivity(intent)
+
+                    lifecycleScope.launch {
+                        try {
+                            val uid = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+
+                            // 1. Firebase Storage 업로드
+                            val imageUrl = withContext(Dispatchers.IO) {
+                                val storageRef = FirebaseStorage.getInstance()
+                                    .reference
+                                    .child("diagnoses/$uid/${timestamp}.jpg")
+                                val stream = requireContext().contentResolver.openInputStream(savedUri)
+                                    ?: return@withContext null
+                                stream.use { storageRef.putStream(it).await() }
+                                storageRef.downloadUrl.await().toString()
+                            }
+
+                            // 2. SVC01 호출 → sickKey 획득 (DISEASE일 때만)
+                            val sickKey = if (diagType == "DISEASE") {
+                                withContext(Dispatchers.IO) {
+                                    DiseaseApiService.getSickKey(cropName, label)
+                                }
+                            } else null
+
+                            // 3. Firestore Diagnoses 저장
+                            withContext(Dispatchers.IO) {
+                                if (uid.isNotEmpty()) {
+                                    val doc = hashMapOf(
+                                        "userId"       to uid,
+                                        "cropType"     to cropName,
+                                        "diseaseName"  to label,
+                                        "confidence"   to confidenceInt.toDouble() / 100.0,
+                                        "imageUrl"     to (imageUrl ?: ""),
+                                        "sickKey"      to (sickKey ?: ""),
+                                        "timestamp"    to Timestamp.now(),
+                                        "isCounted"    to false,
+                                        "isHandled"    to false,
+                                        "memoTitle"    to "",
+                                        "memoContent"  to "",
+                                        "location"     to null,
+                                        "addressDo"    to null,
+                                        "addressSi"    to null
+                                    )
+                                    FirebaseFirestore.getInstance()
+                                        .collection("Diagnoses")
+                                        .add(doc)
+                                        .await()
+                                }
+                            }
+
+                            // 4. SharedPreferences 저장 (HistoryActivity 호환 유지)
+                            val newItem = HistoryItem(
+                                id          = timestamp.toInt(),
+                                imageUri    = savedUri.toString(),
+                                diseaseName = label,
+                                confidence  = confidenceInt,
+                                date        = SimpleDateFormat("yyyy.MM.dd", Locale.getDefault()).format(Date()),
+                                cropName    = cropName,
+                                diagType    = diagType
+                            )
+                            val prefs = requireContext().getSharedPreferences("HistoryPrefs", Context.MODE_PRIVATE)
+                            val gson = Gson()
+                            val current = gson.fromJson(
+                                prefs.getString("history_items", "[]"),
+                                Array<HistoryItem>::class.java
+                            ).toMutableList()
+                            current.add(0, newItem)
+                            prefs.edit().putString("history_items", gson.toJson(current)).apply()
+
+                            progress.dismiss()
+
+                            // 5. ResultActivity 이동 (sickKey 추가)
+                            val intent = Intent(requireContext(), ResultActivity::class.java).apply {
+                                putExtra("imageUri",   savedUri.toString())
+                                putExtra("imageUrl",   imageUrl ?: "")
+                                putExtra("cropName",   cropName)
+                                putExtra("diagType",   diagType)
+                                putExtra("label",      label)
+                                putExtra("confidence", confidenceInt)
+                                putExtra("sickKey",    sickKey ?: "")
+                            }
+                            startActivity(intent)
+
+                        } catch (e: Exception) {
+                            progress.dismiss()
+                            Toast.makeText(requireContext(), "오류 발생: ${e.message}", Toast.LENGTH_SHORT).show()
+                            e.printStackTrace()
+                        }
+                    }
                 }
 
                 override fun onError(exc: ImageCaptureException) {
-                    android.widget.Toast.makeText(requireContext(), "촬영 실패: ${exc.message}", android.widget.Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "촬영 실패: ${exc.message}", Toast.LENGTH_SHORT).show()
                 }
             }
         )
