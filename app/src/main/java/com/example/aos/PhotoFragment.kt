@@ -207,7 +207,8 @@ class PhotoFragment : Fragment() {
                                 confidence  = confidenceInt,
                                 date        = SimpleDateFormat("yyyy.MM.dd", Locale.getDefault()).format(Date()),
                                 cropName    = cropName,
-                                diagType    = diagType
+                                diagType    = diagType,
+                                sickKey     = sickKey ?: ""
                             )
                             val prefs = requireContext().getSharedPreferences("HistoryPrefs", Context.MODE_PRIVATE)
                             val gson = Gson()

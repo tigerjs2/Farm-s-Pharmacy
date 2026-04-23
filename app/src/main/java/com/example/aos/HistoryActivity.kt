@@ -128,11 +128,12 @@ class HistoryActivity : AppCompatActivity() {
     private fun setupRecyclerView() {
         historyAdapter = HistoryAdapter(emptyList()) { historyItem ->
             val intent = Intent(this, ResultActivity::class.java).apply {
-                putExtra("imageUri", historyItem.imageUri)
-                putExtra("cropName", historyItem.cropName)
-                putExtra("diagType", historyItem.diagType)
-                putExtra("label", historyItem.diseaseName)
+                putExtra("imageUri",   historyItem.imageUri)
+                putExtra("cropName",   historyItem.cropName)
+                putExtra("diagType",   historyItem.diagType)
+                putExtra("label",      historyItem.diseaseName)
                 putExtra("confidence", historyItem.confidence)
+                putExtra("sickKey",    historyItem.sickKey)
             }
             startActivity(intent)
         }
