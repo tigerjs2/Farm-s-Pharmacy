@@ -8,12 +8,14 @@ import android.text.style.ForegroundColorSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import com.bumptech.glide.Glide
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -73,7 +75,17 @@ class DetailFragment : Fragment() {
                 actionContainer.removeAllViews()
 
                 if (detail != null) {
-                    // 증상: 마침표 또는 줄바꿈 기준으로 분리
+                    // 병피해 사진 로드 (최대 2장)
+                    val ivSymptom1 = view.findViewById<ImageView>(R.id.ivSymptom1)
+                    val ivSymptom2 = view.findViewById<ImageView>(R.id.ivSymptom2)
+                    if (detail.imageUrls.isNotEmpty()) {
+                        Glide.with(requireContext()).load(detail.imageUrls[0]).centerCrop().into(ivSymptom1)
+                    }
+                    if (detail.imageUrls.size >= 2) {
+                        Glide.with(requireContext()).load(detail.imageUrls[1]).centerCrop().into(ivSymptom2)
+                    }
+
+                    // 증상: HTML 제거 후 파싱
                     parseItems(detail.symptoms).forEach {
                         symptomContainer.addView(makeBulletItem(it))
                     }
@@ -98,17 +110,27 @@ class DetailFragment : Fragment() {
 
     /**
      * API 응답 문자열을 bullet 항목 리스트로 파싱
-     * - 줄바꿈(\n) 또는 마침표(.) 기준으로 분리
-     * - 빈 항목 및 너무 짧은 항목 제거
+     * 1. HTML 태그 제거 (<br> → \n, 나머지 태그 제거)
+     * 2. 줄바꿈 또는 마침표 기준으로 분리
+     * 3. 빈 항목 및 너무 짧은 항목 제거
      */
     private fun parseItems(raw: String): List<String> {
         if (raw.isBlank()) return emptyList()
 
+        // HTML 정리
+        val cleaned = raw
+            .replace(Regex("<br\\s*/?>", RegexOption.IGNORE_CASE), "\n")
+            .replace(Regex("<p\\s*/?>", RegexOption.IGNORE_CASE), "\n")
+            .replace(Regex("<[^>]+>"), "")
+            .replace("&nbsp;", " ")
+            .replace("&amp;", "&")
+            .trim()
+
         // 줄바꿈으로 먼저 분리, 없으면 마침표로 분리
-        val byNewline = raw.split("\n", "\r\n").map { it.trim() }.filter { it.length > 3 }
+        val byNewline = cleaned.split("\n", "\r\n").map { it.trim() }.filter { it.length > 3 }
         if (byNewline.size > 1) return byNewline
 
-        return raw.split(".")
+        return cleaned.split(".")
             .map { it.trim() }
             .filter { it.length > 3 }
             .map { if (!it.endsWith(".")) "$it." else it }

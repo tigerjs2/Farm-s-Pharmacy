@@ -135,7 +135,6 @@ class MyInfoActivity : AppCompatActivity() {
             .create()
 
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
-        dialog.show()
 
         btnChange.setOnClickListener {
             val current = etCurrent.text.toString()

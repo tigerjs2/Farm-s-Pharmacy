@@ -8,5 +8,6 @@ data class HistoryItem(
     val confidence: Int,
     val date: String,
     val cropName: String = "",
-    val diagType: String = "DISEASE"
+    val diagType: String = "DISEASE",
+    val sickKey: String = ""
 )

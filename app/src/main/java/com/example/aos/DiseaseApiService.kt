@@ -61,12 +61,33 @@ object DiseaseApiService {
             val response = execute(url) ?: return null
             val service = response.getAsJsonObject("service") ?: return null
 
+            // imageList 파싱 (배열 또는 단일 객체 방어 처리)
+            val imageUrls = mutableListOf<String>()
+            try {
+                val imageList = service.get("imageList")
+                when {
+                    imageList == null || imageList.isJsonNull -> Unit
+                    imageList.isJsonArray -> {
+                        imageList.asJsonArray.forEach { el ->
+                            el.asJsonObject.get("image")?.asString?.let { imageUrls.add(it) }
+                        }
+                    }
+                    imageList.isJsonObject -> {
+                        imageList.asJsonObject.get("image")?.let { img ->
+                            if (img.isJsonArray) img.asJsonArray.forEach { imageUrls.add(it.asString) }
+                            else if (!img.isJsonNull) imageUrls.add(img.asString)
+                        }
+                    }
+                }
+            } catch (_: Exception) {}
+
             DiseaseDetail(
-                sickNameKor       = service.getString("sickNameKor"),
+                sickNameKor          = service.getString("sickNameKor"),
                 developmentCondition = service.getString("developmentCondition"),
-                symptoms          = service.getString("symptoms"),
-                preventionMethod  = service.getString("preventionMethod"),
-                chemicalPrvnbeMth = service.getString("chemicalPrvnbeMth")
+                symptoms             = service.getString("symptoms"),
+                preventionMethod     = service.getString("preventionMethod"),
+                chemicalPrvnbeMth    = service.getString("chemicalPrvnbeMth"),
+                imageUrls            = imageUrls
             )
         } catch (e: Exception) {
             e.printStackTrace()
