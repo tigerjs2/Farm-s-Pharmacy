@@ -120,12 +120,18 @@ class ResultFragment : Fragment() {
                         val detail = withContext(Dispatchers.IO) {
                             DiseaseApiService.getDetail(sickKey)
                         }
-                        val desc = detail?.developmentCondition
-                            ?.replace(Regex("<br\\s*/?>", RegexOption.IGNORE_CASE), "\n")
+                        val raw = detail?.developmentCondition
+                            ?.replace(Regex("<br\\s*/?>", RegexOption.IGNORE_CASE), " ")
                             ?.replace(Regex("<[^>]+>"), "")
                             ?.replace("&nbsp;", " ")
                             ?.trim()
-                        tvDesc.text = if (desc.isNullOrBlank()) "정보를 불러올 수 없습니다." else desc
+                        // 첫 번째 문장(. 기준)만 표시
+                        val firstSentence = raw
+                            ?.split(".")
+                            ?.firstOrNull { it.trim().length > 5 }
+                            ?.trim()
+                        tvDesc.text = if (firstSentence.isNullOrBlank()) "정보를 불러올 수 없습니다."
+                                      else "$firstSentence."
                     }
                 } else {
                     tvDesc.text = "병해 정보를 불러올 수 없습니다."
