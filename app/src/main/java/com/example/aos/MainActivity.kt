@@ -29,7 +29,7 @@ class MainActivity : AppCompatActivity() {
         navCamera.setOnClickListener { loadFragment(CameraFragment(), it as LinearLayout) }
         navCalendar.setOnClickListener { loadFragment(CalendarFragment(), it as LinearLayout) }
         navGuide.setOnClickListener { loadFragment(GuideFragment(), it as LinearLayout) }
-        navMap.setOnClickListener { /* TODO */ }
+        navMap.setOnClickListener { loadFragment(MapFragment(), it as LinearLayout) }
     }
 
     private fun loadFragment(fragment: Fragment, selected: LinearLayout) {
