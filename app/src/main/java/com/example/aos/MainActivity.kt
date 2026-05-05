@@ -27,8 +27,8 @@ class MainActivity : AppCompatActivity() {
 
         navHome.setOnClickListener { loadFragment(HomeFragment(), it as LinearLayout) }
         navCamera.setOnClickListener { loadFragment(CameraFragment(), it as LinearLayout) }
-        navCalendar.setOnClickListener { /* TODO */ }
-        navGuide.setOnClickListener { /* TODO */ }
+        navCalendar.setOnClickListener { loadFragment(CalendarFragment(), it as LinearLayout) }
+        navGuide.setOnClickListener { loadFragment(GuideFragment(), it as LinearLayout) }
         navMap.setOnClickListener { /* TODO */ }
     }
 
