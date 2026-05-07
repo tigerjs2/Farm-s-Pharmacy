@@ -17,6 +17,21 @@
         android:theme="@style/Theme.AOS"
         android:usesCleartextTraffic="true">
         <activity
+            android:name=".CropPesticideActivity"
+            android:exported="false" />
+        <activity
+            android:name=".DiseaseSearchResultActivity"
+            android:exported="false" />
+        <activity
+            android:name=".PesticideGuideActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ToolGuideDetailActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ToolGuideActivity"
+            android:exported="false" />
+        <activity
             android:name=".HistoryActivity"
             android:exported="false" />
         <activity
