@@ -9,5 +9,6 @@ data class HistoryItem(
     val date: String,
     val cropName: String = "",
     val diagType: String = "DISEASE",
-    val sickKey: String = ""
+    val sickKey: String = "",
+    val isTreated: Boolean = false
 )
