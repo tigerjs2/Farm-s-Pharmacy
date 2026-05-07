@@ -210,9 +210,10 @@
                         android:src="@drawable/ic_rainy"/>
 
                     <TextView
+                        android:id="@+id/tvTemperature"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="7°"
+                        android:text="--°"
                         android:textSize="70sp"
                         android:fontFamily="@font/paperlogy_3light"
                         android:textColor="@color/black"
@@ -230,8 +231,9 @@
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                             android:text="강수량" android:textSize="15sp" android:textColor="@color/black"
                             android:fontFamily="@font/paperlogy_1thin"/>
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="1mm" android:textSize="15sp" android:textColor="@color/black"
+                        <TextView android:id="@+id/tvRain"
+                            android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="--mm" android:textSize="15sp" android:textColor="@color/black"
                             android:fontFamily="@font/paperlogy_3light"/>
                     </LinearLayout>
 
@@ -240,8 +242,9 @@
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                             android:text="습도" android:textSize="15sp" android:textColor="@color/black"
                             android:fontFamily="@font/paperlogy_1thin"/>
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="80%" android:textSize="15sp" android:textColor="@color/black"
+                        <TextView android:id="@+id/tvHumidity"
+                            android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="--%"  android:textSize="15sp" android:textColor="@color/black"
                             android:fontFamily="@font/paperlogy_3light"/>
                     </LinearLayout>
 
@@ -250,8 +253,9 @@
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                             android:text="풍속" android:textSize="15sp" android:textColor="@color/black"
                             android:fontFamily="@font/paperlogy_1thin"/>
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="1%" android:textSize="15sp" android:textColor="@color/black"
+                        <TextView android:id="@+id/tvWind"
+                            android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="--m/s" android:textSize="15sp" android:textColor="@color/black"
                             android:fontFamily="@font/paperlogy_3light"/>
                     </LinearLayout>
 
