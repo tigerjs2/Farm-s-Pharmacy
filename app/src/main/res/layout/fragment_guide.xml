@@ -1,17 +1,207 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#F0EDE8">
 
-    <TextView
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:text="가이드"
-        android:textSize="24sp"
-        android:textColor="@color/primary_green"
-        android:fontFamily="@font/paperlogy_7bold"/>
+        android:orientation="vertical"
+        android:padding="20dp">
 
-</FrameLayout>
+        <!-- 이달의 질병 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="이달의 질병"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:textColor="#333333"
+            android:fontFamily="@font/paperlogy_7bold"/>
+
+        <!-- 카드 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/bg_guide_card"
+            android:orientation="horizontal"
+            android:padding="20dp">
+
+            <!-- 월 -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="3월"
+                    android:textSize="20sp"
+                    android:textColor="#999999"
+                    android:fontFamily="@font/paperlogy_3light"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="4월"
+                    android:textSize="42sp"
+                    android:textStyle="bold"
+                    android:textColor="#000000"
+                    android:fontFamily="@font/paperlogy_7bold"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="5월"
+                    android:textSize="20sp"
+                    android:textColor="#999999"
+                    android:fontFamily="@font/paperlogy_3light"/>
+            </LinearLayout>
+
+            <!-- 병명 -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="80dp"
+                android:orientation="vertical"
+                android:gravity="center">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="노균병, 탄저병"
+                    android:textSize="20sp"
+                    android:textColor="#999999"
+                    android:fontFamily="@font/paperlogy_3light"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="흰가루병"
+                    android:textSize="42sp"
+                    android:textStyle="bold"
+                    android:textColor="#000000"
+                    android:fontFamily="@font/paperlogy_7bold"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="잿빛 곰팡이병"
+                    android:textSize="20sp"
+                    android:textColor="#999999"
+                    android:fontFamily="@font/paperlogy_3light"/>
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- 월별 유행병 버튼 -->
+        <Button
+            android:id="@+id/btnMonthlyDisease"
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/bg_guide_button"
+            android:text="월별 유행병 발생 정보"
+            android:textAllCaps="false"
+            android:textColor="@android:color/white"
+            android:textSize="22sp"
+            android:fontFamily="@font/paperlogy_7bold"/>
+
+        <!-- 오늘의 안전 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="28dp"
+            android:text="오늘의 안전"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:textColor="#333333"
+            android:fontFamily="@font/paperlogy_7bold"/>
+
+        <!-- 안전 카드 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/bg_guide_card"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="예취작업은 오른쪽에서 왼쪽으로 한다."
+                android:textColor="#000000"
+                android:textSize="15sp"
+                android:fontFamily="@font/paperlogy_7bold" />
+
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="130dp"
+                android:layout_marginTop="8dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/sample_safety" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="· 예취날을 무리하게 휘두르거나 지면에 닿지 않도록 한다."
+                android:textColor="#000000"
+                android:textSize="12sp"
+                android:fontFamily="@font/paperlogy_3light" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:text="· 핸들은 양손으로 잡고 반드시 오른쪽에서 왼쪽방향으로 한다."
+                android:textColor="#000000"
+                android:textSize="12sp"
+                android:fontFamily="@font/paperlogy_3light" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:text="· 왼쪽에서 오른쪽으로 작업할 경우 돌, 나무, 부러진 등에 예취날이 부딪혀 위험하다."
+                android:textColor="#000000"
+                android:textSize="12sp"
+                android:fontFamily="@font/paperlogy_3light" />
+
+        </LinearLayout>
+
+        <!-- 농기구 사용 지침 -->
+        <Button
+            android:id="@+id/btnToolGuide"
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/bg_guide_button"
+            android:text="농기구 사용 지침"
+            android:textAllCaps="false"
+            android:textColor="@android:color/white"
+            android:textSize="22sp"
+            android:fontFamily="@font/paperlogy_7bold"/>
+
+        <!-- 농약 안전 사용 지침 -->
+        <Button
+            android:id="@+id/btnPesticideGuide"
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="40dp"
+            android:background="@drawable/bg_guide_button"
+            android:text="농약 안전 사용 지침"
+            android:textAllCaps="false"
+            android:textColor="@android:color/white"
+            android:textSize="22sp"
+            android:fontFamily="@font/paperlogy_7bold"/>
+
+    </LinearLayout>
+
+</ScrollView>
