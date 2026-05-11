@@ -15,15 +15,12 @@ class GuideFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        return inflater.inflate(R.layout.fragment_guide, container, false)
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+        val view = inflater.inflate(R.layout.fragment_guide, container, false)
 
         view.findViewById<Button>(R.id.btnMonthlyDisease).setOnClickListener {
             startActivity(Intent(requireContext(), MonthlyDiseaseActivity::class.java))
         }
+
 
         view.findViewById<Button>(R.id.btnToolGuide).setOnClickListener {
             startActivity(Intent(requireContext(), ToolGuideActivity::class.java))
@@ -32,5 +29,7 @@ class GuideFragment : Fragment() {
         view.findViewById<Button>(R.id.btnPesticideGuide).setOnClickListener {
             startActivity(Intent(requireContext(), PesticideGuideActivity::class.java))
         }
+
+        return view
     }
 }
