@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/monthlyDiseaseRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F0EDE8"
+    android:orientation="vertical"
+    android:paddingStart="18dp"
+    android:paddingTop="48dp"
+    android:paddingEnd="18dp">
+
+    <TextView
+        android:id="@+id/tvMonthlyDiseaseTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/paperlogy_3light"
+        android:includeFontPadding="false"
+        android:text="유행병 정보"
+        android:textColor="#777777"
+        android:textSize="34sp" />
+
+    <LinearLayout
+        android:id="@+id/monthlyTabContainer"
+        android:layout_width="match_parent"
+        android:layout_height="36dp"
+        android:layout_marginTop="20dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tvMonthlyCommonTab"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/bg_monthly_tab_selected"
+            android:fontFamily="@font/paperlogy_3light"
+            android:gravity="center"
+            android:includeFontPadding="false"
+            android:text="월별 공통 병해"
+            android:textColor="@android:color/white"
+            android:textSize="17sp" />
+
+        <Space
+            android:layout_width="10dp"
+            android:layout_height="match_parent" />
+
+        <TextView
+            android:id="@+id/tvCropDetailTab"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/bg_monthly_tab_unselected"
+            android:fontFamily="@font/paperlogy_3light"
+            android:gravity="center"
+            android:includeFontPadding="false"
+            android:text="작물별 상세 보기"
+            android:textColor="#777777"
+            android:textSize="17sp" />
+
+    </LinearLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="24dp"
+        android:layout_weight="1">
+
+        <ScrollView
+            android:id="@+id/monthlyScrollView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:fillViewport="true"
+            android:paddingBottom="28dp">
+
+            <LinearLayout
+                android:id="@+id/monthDiseaseContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+        </ScrollView>
+
+        <ScrollView
+            android:id="@+id/cropScrollView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:fillViewport="true"
+            android:paddingBottom="28dp"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:id="@+id/cropDiseaseContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+        </ScrollView>
+
+    </FrameLayout>
+
+</LinearLayout>

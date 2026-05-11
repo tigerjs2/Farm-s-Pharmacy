@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="14dp"
+    android:orientation="vertical"
+    android:background="@drawable/bg_pesticide_inner_card"
+    android:elevation="2dp"
+    android:paddingTop="14dp"
+    android:paddingBottom="12dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingStart="14dp"
+        android:paddingEnd="14dp">
+
+        <TextView
+            android:id="@+id/tvProductName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="상표명"
+            android:textColor="#111111"
+            android:textSize="14sp"
+            android:fontFamily="@font/paperlogy_6semibold" />
+
+        <TextView
+            android:id="@+id/tvCategory"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="구분: 살균제 수화제(WP)"
+            android:textColor="#111111"
+            android:textSize="11sp"
+            android:fontFamily="@font/paperlogy_4regular" />
+
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="품목명"
+        android:textColor="#111111"
+        android:textSize="12sp"
+        android:layout_marginTop="8dp"
+        android:paddingStart="14dp"
+        android:fontFamily="@font/paperlogy_4regular" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="12dp"
+        android:background="#222222" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingStart="14dp"
+        android:paddingEnd="14dp"
+        android:paddingTop="10dp">
+
+        <TextView
+            android:id="@+id/tvUsage"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="사용 적기 및 방법"
+            android:textColor="#111111"
+            android:textSize="11sp" />
+
+        <TextView
+            android:id="@+id/tvStandard"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="안전사용기준"
+            android:textColor="#111111"
+            android:textSize="11sp" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingStart="14dp"
+        android:paddingEnd="14dp"
+        android:paddingTop="8dp">
+
+        <TextView
+            android:id="@+id/tvInterval"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="발병 초기 살포"
+            android:textColor="#111111"
+            android:textSize="11sp" />
+
+        <TextView
+            android:id="@+id/tvTiming"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="수확 3일 전"
+            android:textColor="#111111"
+            android:textSize="11sp" />
+
+    </LinearLayout>
+
+</LinearLayout>
