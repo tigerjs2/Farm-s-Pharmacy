@@ -1,17 +1,544 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout
+<androidx.core.widget.NestedScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F0EDE8">
+    android:background="@color/background"
+    android:fillViewport="true">
 
-    <TextView
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:text="캘린더"
-        android:textSize="24sp"
-        android:textColor="@color/primary_green"
-        android:fontFamily="@font/paperlogy_7bold"/>
+        android:orientation="vertical"
+        android:paddingBottom="100dp">
 
-</FrameLayout>
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="34dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvMonth"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="March"
+                android:textSize="40sp"
+                android:textColor="@color/black"
+                android:fontFamily="@font/paperlogy_6semibold" />
+
+            <ImageView
+                android:id="@+id/ivMonthArrow"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:src="@drawable/ic_month_arrow" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/llCalendar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingHorizontal="12dp"
+            android:layout_marginTop="10dp">
+
+            <!-- 1 -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvWeek16"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="월"
+                    android:textSize="13sp"
+                    android:textColor="@color/gray"
+                    android:fontFamily="@font/paperlogy_3light" />
+
+                <FrameLayout
+                    android:layout_width="51dp"
+                    android:layout_height="77dp"
+                    android:layout_marginTop="4dp">
+
+                    <View
+                        android:id="@+id/vDay16"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/calendar_normal" />
+
+                    <TextView
+                        android:id="@+id/tvDay16"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="top|center_horizontal"
+                        android:paddingTop="7dp"
+                        android:text="16"
+                        android:textSize="12sp"
+                        android:textColor="@color/black"
+                        android:fontFamily="@font/paperlogy_4regular" />
+
+                    <ImageView
+                        android:id="@+id/ivDisease16"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="bottom|center_horizontal"
+                        android:layout_marginBottom="8dp"
+                        android:src="@drawable/calendar_disease"
+                        android:visibility="gone" />
+                </FrameLayout>
+            </LinearLayout>
+
+            <!-- 2 -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvWeek17"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="화"
+                    android:textSize="13sp"
+                    android:textColor="@color/gray"
+                    android:fontFamily="@font/paperlogy_3light" />
+
+                <FrameLayout
+                    android:layout_width="51dp"
+                    android:layout_height="77dp"
+                    android:layout_marginTop="4dp">
+
+                    <View
+                        android:id="@+id/vDay17"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/calendar_normal" />
+
+                    <TextView
+                        android:id="@+id/tvDay17"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="top|center_horizontal"
+                        android:paddingTop="7dp"
+                        android:text="17"
+                        android:textSize="12sp"
+                        android:textColor="@color/black"
+                        android:fontFamily="@font/paperlogy_4regular" />
+
+                    <ImageView
+                        android:id="@+id/ivDisease17"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="bottom|center_horizontal"
+                        android:layout_marginBottom="8dp"
+                        android:src="@drawable/calendar_disease"
+                        android:visibility="gone" />
+                </FrameLayout>
+            </LinearLayout>
+
+            <!-- 3 -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvWeek18"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="수"
+                    android:textSize="13sp"
+                    android:textColor="@color/gray"
+                    android:fontFamily="@font/paperlogy_3light" />
+
+                <FrameLayout
+                    android:layout_width="51dp"
+                    android:layout_height="77dp"
+                    android:layout_marginTop="4dp">
+
+                    <View
+                        android:id="@+id/vDay18"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/calendar_normal" />
+
+                    <TextView
+                        android:id="@+id/tvDay18"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="top|center_horizontal"
+                        android:paddingTop="7dp"
+                        android:text="18"
+                        android:textSize="12sp"
+                        android:textColor="@color/black"
+                        android:fontFamily="@font/paperlogy_4regular" />
+
+                    <ImageView
+                        android:id="@+id/ivDisease18"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="bottom|center_horizontal"
+                        android:layout_marginBottom="8dp"
+                        android:src="@drawable/calendar_no_disease"
+                        android:visibility="gone" />
+                </FrameLayout>
+            </LinearLayout>
+
+            <!-- 4 -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvWeek19"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="목"
+                    android:textSize="13sp"
+                    android:textColor="@color/gray"
+                    android:fontFamily="@font/paperlogy_3light" />
+
+                <FrameLayout
+                    android:layout_width="51dp"
+                    android:layout_height="77dp"
+                    android:layout_marginTop="4dp">
+
+                    <View
+                        android:id="@+id/vDay19"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/calendar_normal" />
+
+                    <TextView
+                        android:id="@+id/tvDay19"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="top|center_horizontal"
+                        android:paddingTop="7dp"
+                        android:text="19"
+                        android:textSize="12sp"
+                        android:textColor="@color/black"
+                        android:fontFamily="@font/paperlogy_4regular" />
+
+                    <ImageView
+                        android:id="@+id/ivDisease19"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="bottom|center_horizontal"
+                        android:layout_marginBottom="8dp"
+                        android:src="@drawable/calendar_disease"
+                        android:visibility="gone" />
+                </FrameLayout>
+            </LinearLayout>
+
+            <!-- 5 -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvWeek20"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="금"
+                    android:textSize="13sp"
+                    android:textColor="@color/gray"
+                    android:fontFamily="@font/paperlogy_3light" />
+
+                <FrameLayout
+                    android:layout_width="51dp"
+                    android:layout_height="77dp"
+                    android:layout_marginTop="4dp">
+
+                    <View
+                        android:id="@+id/vDay20"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/calendar_normal" />
+
+                    <TextView
+                        android:id="@+id/tvDay20"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="top|center_horizontal"
+                        android:paddingTop="7dp"
+                        android:text="20"
+                        android:textSize="12sp"
+                        android:textColor="@color/black"
+                        android:fontFamily="@font/paperlogy_4regular" />
+
+                    <ImageView
+                        android:id="@+id/ivDisease20"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="bottom|center_horizontal"
+                        android:layout_marginBottom="8dp"
+                        android:src="@drawable/calendar_disease"
+                        android:visibility="gone" />
+                </FrameLayout>
+            </LinearLayout>
+
+            <!-- 6 -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvWeek21"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="토"
+                    android:textSize="13sp"
+                    android:textColor="@color/gray"
+                    android:fontFamily="@font/paperlogy_3light" />
+
+                <FrameLayout
+                    android:layout_width="51dp"
+                    android:layout_height="77dp"
+                    android:layout_marginTop="4dp">
+
+                    <View
+                        android:id="@+id/vDay21"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/calendar_normal" />
+
+                    <TextView
+                        android:id="@+id/tvDay21"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="top|center_horizontal"
+                        android:paddingTop="7dp"
+                        android:text="21"
+                        android:textSize="12sp"
+                        android:textColor="@color/black"
+                        android:fontFamily="@font/paperlogy_4regular" />
+
+                    <ImageView
+                        android:id="@+id/ivDisease21"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="bottom|center_horizontal"
+                        android:layout_marginBottom="8dp"
+                        android:src="@drawable/calendar_disease"
+                        android:visibility="gone" />
+                </FrameLayout>
+            </LinearLayout>
+
+            <!-- 7 -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvWeek22"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="일"
+                    android:textSize="13sp"
+                    android:textColor="@color/gray"
+                    android:fontFamily="@font/paperlogy_3light" />
+
+                <FrameLayout
+                    android:layout_width="51dp"
+                    android:layout_height="77dp"
+                    android:layout_marginTop="4dp">
+
+                    <View
+                        android:id="@+id/vDay22"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/calendar_normal" />
+
+                    <TextView
+                        android:id="@+id/tvDay22"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="top|center_horizontal"
+                        android:paddingTop="7dp"
+                        android:text="22"
+                        android:textSize="12sp"
+                        android:textColor="@color/black"
+                        android:fontFamily="@font/paperlogy_4regular" />
+
+                    <ImageView
+                        android:id="@+id/ivDisease22"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="bottom|center_horizontal"
+                        android:layout_marginBottom="8dp"
+                        android:src="@drawable/calendar_disease"
+                        android:visibility="gone" />
+                </FrameLayout>
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="10dp"
+            android:text="오늘의 농사"
+            android:textSize="24sp"
+            android:textColor="@color/black"
+            android:fontFamily="@font/paperlogy_3light" />
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="188dp"
+            android:layout_marginHorizontal="20dp"
+            android:layout_marginTop="10dp"
+            app:cardCornerRadius="26dp"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="@color/white">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:paddingStart="18dp"
+                android:paddingEnd="18dp"
+                android:paddingTop="18dp"
+                android:paddingBottom="18dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <View
+                        android:id="@+id/viewDiseaseOrb"
+                        android:layout_width="71dp"
+                        android:layout_height="71dp"
+                        android:background="@drawable/calendar_no_disease" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="18dp"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tvDiseaseCount"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="병해 6건"
+                            android:textSize="24sp"
+                            android:textColor="@color/black"
+                            android:fontFamily="@font/paperlogy_6semibold" />
+
+                        <TextView
+                            android:id="@+id/tvDiseaseType"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="진단 질병: 노균병, 기타"
+                            android:textSize="24sp"
+                            android:textColor="@color/black"
+                            android:fontFamily="@font/paperlogy_3light" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="처리 필요"
+                    android:textSize="24sp"
+                    android:textColor="@color/black"
+                    android:fontFamily="@font/paperlogy_3light" />
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="25dp"
+                    android:layout_marginTop="6dp"
+                    android:background="@drawable/bar_track">
+
+                    <View
+                        android:id="@+id/viewBarFill"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/bar_fill" />
+
+                </FrameLayout>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:layout_marginEnd="24dp"
+            android:layout_marginTop="24dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="To do"
+                android:textSize="32sp"
+                android:textColor="@color/black"
+                android:fontFamily="@font/paperlogy_3light" />
+
+            <ImageButton
+                android:id="@+id/btnAddTodo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@android:color/transparent"
+                android:src="@drawable/ic_add_todo"
+                android:scaleType="center" />
+        </LinearLayout>
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="20dp"
+            android:layout_marginTop="8dp"
+            app:cardCornerRadius="24dp"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="@color/white">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvTodoList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp"
+                android:nestedScrollingEnabled="false"
+                android:clipToPadding="false" />
+
+        </androidx.cardview.widget.CardView>
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

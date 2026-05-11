@@ -17,14 +17,33 @@
         android:theme="@style/Theme.AOS"
         android:usesCleartextTraffic="true">
         <activity
+            android:name=".CropPesticideActivity"
+            android:exported="false" />
+        <activity
+            android:name=".DiseaseSearchResultActivity"
+            android:exported="false" />
+        <activity
+            android:name=".PesticideGuideActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ToolGuideDetailActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ToolGuideActivity"
+            android:exported="false" />
+        <activity
+            android:name=".MonthlyDiseaseActivity"
+            android:exported="false" />
+        <activity
             android:name=".HistoryActivity"
             android:exported="false" />
         <activity
             android:name=".ResultActivity"
             android:exported="false" />
-        <activity
+        <!--<activity
             android:name=".PhotoFragment"
-            android:exported="false" />
+            android:exported="false" /> -->
+        <activity android:name=".DiseasePesticideActivity" />
         <activity
             android:name=".MyInfoActivity"
             android:exported="false" />
@@ -34,6 +53,7 @@
         <activity
             android:name=".LoginActivity"
             android:exported="true">
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

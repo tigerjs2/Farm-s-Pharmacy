@@ -39,6 +39,25 @@
             android:scaleType="centerCrop"
             android:contentDescription="진단 이미지" />
 
+        <!-- 처치 완료 오버레이 -->
+        <View
+            android:id="@+id/overlayTreated"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#80000000"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/tvTreatedLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="처치 완료"
+            android:textColor="#FFFFFF"
+            android:textSize="36sp"
+            android:fontFamily="@font/paperlogy_5medium"
+            android:visibility="gone" />
+
     </androidx.cardview.widget.CardView>
 
     <!-- 진단 결과 -->
@@ -109,7 +128,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent">
 
-        <!-- 화살표 이미지 -->
         <ImageView
             android:id="@+id/detailButtonImage"
             android:layout_width="wrap_content"
@@ -117,14 +135,12 @@
             android:src="@drawable/ic_scroll"
             android:contentDescription="자세히 알아보기" />
 
-        <!-- 텍스트 컨테이너 (세로) -->
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
             android:orientation="vertical">
 
-            <!-- "스크롤하여" -->
             <TextView
                 android:id="@+id/scrollText"
                 android:layout_width="wrap_content"
@@ -136,7 +152,6 @@
                 android:includeFontPadding="false"
                 android:lineSpacingExtra="0dp" />
 
-            <!-- "자세히 알아보기" -->
             <TextView
                 android:id="@+id/detailText"
                 android:layout_width="wrap_content"
@@ -147,6 +162,7 @@
                 android:textColor="@color/primary_green"
                 android:includeFontPadding="false"
                 android:lineSpacingExtra="0dp" />
+
         </LinearLayout>
     </LinearLayout>
 

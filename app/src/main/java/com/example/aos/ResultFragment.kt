@@ -1,5 +1,6 @@
 package com.example.aos
 
+import android.content.Context
 import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
@@ -15,6 +16,7 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -125,25 +127,62 @@ class ResultFragment : Fragment() {
                             ?.replace(Regex("<[^>]+>"), "")
                             ?.replace("&nbsp;", " ")
                             ?.trim()
-                        // 첫 번째 문장(. 기준)만 표시
                         val firstSentence = raw
                             ?.split(".")
                             ?.firstOrNull { it.trim().length > 5 }
                             ?.trim()
                         tvDesc.text = if (firstSentence.isNullOrBlank()) "정보를 불러올 수 없습니다."
-                                      else "$firstSentence."
+                        else "$firstSentence."
                     }
                 } else {
                     tvDesc.text = "병해 정보를 불러올 수 없습니다."
                 }
             }
-            else -> { // UNKNOWN
+            else -> {
                 tvDiseaseName.text = ""
                 tvConfidence.setTextColor(Color.parseColor("#C0B5BF"))
                 tvLabel.text = "인식하지 못했어요"
                 tvLabel.setTextColor(Color.parseColor("#000000"))
                 tvDesc.text = "${cropName} 잎이 인식되지 않았습니다.\n잎을 정확히 촬영해주세요."
             }
+        }
+
+        // ── 처치 완료 오버레이 토글 ──
+        val overlayTreated = view.findViewById<View>(R.id.overlayTreated)
+        val tvTreatedLabel = view.findViewById<TextView>(R.id.tvTreatedLabel)
+        val prefs = requireContext().getSharedPreferences("HistoryPrefs", Context.MODE_PRIVATE)
+        val gson  = Gson()
+
+        fun loadTreated(): Boolean {
+            val json  = prefs.getString("history_items", "[]") ?: "[]"
+            val items = gson.fromJson(json, Array<HistoryItem>::class.java)
+            return items.find { it.imageUri == imageUri }?.isTreated ?: false
+        }
+
+        fun saveTreated(treated: Boolean) {
+            val json  = prefs.getString("history_items", "[]") ?: "[]"
+            val items = gson.fromJson(json, Array<HistoryItem>::class.java).toMutableList()
+            val idx   = items.indexOfFirst { it.imageUri == imageUri }
+            if (idx != -1) {
+                items[idx] = items[idx].copy(isTreated = treated)
+                prefs.edit().putString("history_items", gson.toJson(items)).apply()
+            }
+        }
+
+        fun applyOverlay(treated: Boolean) {
+            val vis = if (treated) View.VISIBLE else View.GONE
+            overlayTreated.visibility = vis
+            tvTreatedLabel.visibility = vis
+        }
+
+        // 초기 상태 반영
+        applyOverlay(loadTreated())
+
+        // 사진 클릭 → 토글
+        ivCaptured.setOnClickListener {
+            val next = !loadTreated()
+            saveTreated(next)
+            applyOverlay(next)
         }
     }
 }

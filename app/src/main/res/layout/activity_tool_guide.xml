@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F0EDE8"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="25dp"
+        android:text="농기구 사용 지침 조회"
+        android:textColor="@color/primary_green"
+        android:textSize="35sp"
+        android:gravity="center"
+        android:fontFamily="@font/paperlogy_4regular" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="조회하고 싶은 농기구를 선택해주세요."
+        android:textColor="#C8C0C8"
+        android:textSize="18sp"
+        android:gravity="center"
+        android:fontFamily="@font/paperlogy_3light" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/toolRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="36dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:overScrollMode="never" />
+
+</LinearLayout>

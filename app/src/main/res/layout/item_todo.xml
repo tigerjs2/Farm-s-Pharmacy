@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="78dp"
+    android:layout_marginBottom="8dp"
+    app:cardCornerRadius="39dp"
+    app:cardElevation="0dp"
+    app:cardBackgroundColor="#C7E89A">
+
+    <LinearLayout
+        android:id="@+id/llTodoItem"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="24dp"
+        android:paddingEnd="10dp">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvTodoTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="1-2구역 살균제 살포"
+                android:textSize="24sp"
+                android:textColor="@color/black"
+                android:fontFamily="@font/paperlogy_5medium" />
+
+            <TextView
+                android:id="@+id/tvTodoMemo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="노균병용 다코닐"
+                android:textSize="16sp"
+                android:textColor="@color/black"
+                android:alpha="0.75"
+                android:layout_marginTop="2dp"
+                android:fontFamily="@font/paperlogy_3light" />
+        </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/btnCheck"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_check_outline"
+            android:scaleType="center"
+            android:adjustViewBounds="true"/>
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>
