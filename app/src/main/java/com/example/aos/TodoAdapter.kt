@@ -8,8 +8,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.aos.databinding.ItemTodoBinding
 import androidx.core.content.ContextCompat
 
-class TodoAdapter(private val todos: MutableList<TodoItem>) :
-    RecyclerView.Adapter<TodoAdapter.TodoViewHolder>() {
+class TodoAdapter(
+    private val todos: MutableList<TodoItem>,
+    private val onCheckToggle: (TodoItem) -> Unit = {}
+) : RecyclerView.Adapter<TodoAdapter.TodoViewHolder>() {
 
     inner class TodoViewHolder(val binding: ItemTodoBinding) :
         RecyclerView.ViewHolder(binding.root)
@@ -34,6 +36,7 @@ class TodoAdapter(private val todos: MutableList<TodoItem>) :
         holder.binding.btnCheck.setOnClickListener {
             item.isDone = !item.isDone
             updateStyle(holder, item)
+            onCheckToggle(item)
         }
     }
 

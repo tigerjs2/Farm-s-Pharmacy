@@ -12,6 +12,8 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.aos.databinding.FragmentCalendarBinding
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import java.time.LocalDate
@@ -69,6 +71,7 @@ class CalendarFragment : Fragment() {
             loadStats()
             setupCalendar()
             updateDiseaseCard(selectedDate.dayOfMonth)
+            loadTodos()
         }
     }
 
@@ -185,6 +188,8 @@ class CalendarFragment : Fragment() {
                 setupCalendar()
 
                 updateDiseaseCard(selectedDate.dayOfMonth)
+
+                loadTodos()
             }
         }
     }
@@ -273,9 +278,12 @@ class CalendarFragment : Fragment() {
     private lateinit var todoAdapter: TodoAdapter
     private val todos = mutableListOf<TodoItem>()
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun setupTodoList() {
 
-        todoAdapter = TodoAdapter(todos)
+        todoAdapter = TodoAdapter(todos) { item ->
+            updateTodoDone(item)
+        }
 
         binding.rvTodoList.layoutManager =
             LinearLayoutManager(requireContext())
@@ -285,8 +293,51 @@ class CalendarFragment : Fragment() {
         binding.btnAddTodo.setOnClickListener {
             showAddTodoBottomSheet()
         }
+
+        loadTodos()
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun loadTodos() {
+
+        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        val dateStr = selectedDate.toString()
+
+        FirebaseFirestore.getInstance()
+            .collection("Todos")
+            .whereEqualTo("uid", uid)
+            .whereEqualTo("date", dateStr)
+            .get()
+            .addOnSuccessListener { snapshot ->
+
+                if (_binding == null) return@addOnSuccessListener
+
+                todos.clear()
+
+                snapshot.documents
+                    .mapNotNull { doc ->
+                        doc.toObject(TodoItem::class.java)?.also {
+                            it.id = doc.id
+                        }
+                    }
+                    .sortedByDescending { it.id }
+                    .forEach { todos.add(it) }
+
+                todoAdapter.notifyDataSetChanged()
+            }
+    }
+
+    private fun updateTodoDone(item: TodoItem) {
+
+        if (item.id.isEmpty()) return
+
+        FirebaseFirestore.getInstance()
+            .collection("Todos")
+            .document(item.id)
+            .update("isDone", item.isDone)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun showAddTodoBottomSheet() {
 
         val dialog =
@@ -313,20 +364,39 @@ class CalendarFragment : Fragment() {
 
             if (title.isEmpty()) return@setOnClickListener
 
-            todos.add(
-                0,
-                TodoItem(
-                    title = title,
-                    memo = memo,
-                    isDone = false
-                )
+            val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return@setOnClickListener
+            val dateStr = selectedDate.toString()
+
+            val newItem = TodoItem(
+                uid = uid,
+                date = dateStr,
+                title = title,
+                memo = memo,
+                isDone = false
             )
 
-            todoAdapter.notifyItemInserted(0)
+            btnSave.isEnabled = false
 
-            binding.rvTodoList.scrollToPosition(0)
+            FirebaseFirestore.getInstance()
+                .collection("Todos")
+                .add(newItem)
+                .addOnSuccessListener { docRef ->
 
-            dialog.dismiss()
+                    if (_binding == null) return@addOnSuccessListener
+
+                    newItem.id = docRef.id
+
+                    todos.add(0, newItem)
+
+                    todoAdapter.notifyItemInserted(0)
+
+                    binding.rvTodoList.scrollToPosition(0)
+
+                    dialog.dismiss()
+                }
+                .addOnFailureListener {
+                    btnSave.isEnabled = true
+                }
         }
 
         dialog.setContentView(view)
