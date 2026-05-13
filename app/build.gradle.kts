@@ -26,6 +26,7 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         buildConfigField("String", "DISEASE_API_KEY", "\"${localProperties["DISEASE_API_KEY"] ?: ""}\"")
+        buildConfigField("String", "OPENWEATHER_API_KEY", "\"${localProperties["OPENWEATHER_API_KEY"] ?: ""}\"")
     }
 
     buildTypes {
