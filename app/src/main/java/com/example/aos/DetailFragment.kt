@@ -6,6 +6,7 @@ import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
@@ -15,6 +16,7 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import androidx.viewpager2.widget.ViewPager2
 import com.bumptech.glide.Glide
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -26,6 +28,7 @@ class DetailFragment : Fragment() {
         private const val ARG_CROP_NAME    = "cropName"
         private const val ARG_DISEASE_NAME = "diseaseName"
         private const val ARG_SICK_KEY     = "sickKey"
+        private const val RETURN_SWIPE_DISTANCE_DP = 72
 
         fun newInstance(cropName: String, diseaseName: String, sickKey: String): DetailFragment {
             val fragment = DetailFragment()
@@ -49,10 +52,7 @@ class DetailFragment : Fragment() {
         val sickKey = arguments?.getString(ARG_SICK_KEY) ?: ""
 
         val scrollView = view.findViewById<ScrollView>(R.id.scrollView)
-        scrollView.setOnTouchListener { v, _ ->
-            v.parent.requestDisallowInterceptTouchEvent(true)
-            false
-        }
+        setupDetailScrollGesture(scrollView)
 
         // 투톤 타이틀
         applySymptomTitle(view)
@@ -106,6 +106,65 @@ class DetailFragment : Fragment() {
             symptomContainer.addView(makeBulletItem("병해 정보를 불러올 수 없습니다."))
             actionContainer.addView(makeBulletItem("병해 정보를 불러올 수 없습니다."))
         }
+    }
+
+    private fun setupDetailScrollGesture(scrollView: ScrollView) {
+        var startY = 0f
+        var movedToResult = false
+
+        scrollView.setOnTouchListener { v, event ->
+            when (event.actionMasked) {
+                MotionEvent.ACTION_DOWN -> {
+                    startY = event.rawY
+                    movedToResult = false
+
+                    // 먼저 상세 내용 내부 스크롤이 터치를 받게 한다.
+                    v.parent.requestDisallowInterceptTouchEvent(true)
+                }
+
+                MotionEvent.ACTION_MOVE -> {
+                    val dragDistance = event.rawY - startY
+                    val isDraggingDown = dragDistance > 0
+                    val isDraggingUp = dragDistance < 0
+
+                    val canScrollUp = scrollView.canScrollVertically(-1)
+                    val canScrollDown = scrollView.canScrollVertically(1)
+
+                    val shouldLetViewPagerHandle =
+                        (isDraggingDown && !canScrollUp) ||
+                                (isDraggingUp && !canScrollDown)
+
+                    // 상세 내용 안에서 스크롤할 수 있으면 ScrollView가 처리하고,
+                    // 맨 위/맨 아래처럼 더 이상 움직일 수 없는 지점에서는 ViewPager2가 처리하게 한다.
+                    v.parent.requestDisallowInterceptTouchEvent(!shouldLetViewPagerHandle)
+
+                    // 상세 페이지 맨 위에서 아래로 충분히 끌어내리면 결과 페이지로 복귀한다.
+                    if (!movedToResult && isDraggingDown && !canScrollUp &&
+                        dragDistance > RETURN_SWIPE_DISTANCE_DP.dpToPx()
+                    ) {
+                        movedToResult = true
+                        findParentViewPager2(v)?.setCurrentItem(0, true)
+                    }
+                }
+
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    v.parent.requestDisallowInterceptTouchEvent(false)
+                }
+            }
+
+            false
+        }
+    }
+
+    private fun findParentViewPager2(view: View): ViewPager2? {
+        var parent = view.parent
+
+        while (parent is View) {
+            if (parent is ViewPager2) return parent
+            parent = parent.parent
+        }
+
+        return null
     }
 
     /**
