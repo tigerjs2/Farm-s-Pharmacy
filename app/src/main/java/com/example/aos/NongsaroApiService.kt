@@ -27,6 +27,24 @@ object NongsaroApiService {
      * API의 sText는 제목/본문 검색이라 농기구 분류(knmcNm)와 매칭되지 않음.
      * 그래서 전체를 받아 와서 클라이언트에서 분류 일치 항목만 추린다.
      */
+    /**
+     * 전체 농기구 안전 지침 중에서 랜덤으로 1건 반환 ("오늘의 안전" 카드용).
+     */
+    fun getRandomToolGuide(): ToolGuide? {
+        val apiKey = BuildConfig.NONGSARO_API_KEY
+        val url = "$TOOL_SAFETY_URL?apiKey=$apiKey&pageNo=1&numOfRows=200"
+
+        return try {
+            val xml = fetch(url) ?: return null
+            parseToolGuides(xml)
+                .filter { it.title.isNotBlank() && it.imageUrl.isNotBlank() }
+                .randomOrNull()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
     fun getToolGuides(
         knmcNm: String,
         pageNo: Int = 1,

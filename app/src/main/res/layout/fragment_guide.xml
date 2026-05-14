@@ -162,6 +162,7 @@
             android:padding="16dp">
 
             <TextView
+                android:id="@+id/tvTodaySafetyTitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="예취작업은 오른쪽에서 왼쪽으로 한다."
@@ -170,38 +171,19 @@
                 android:fontFamily="@font/paperlogy_7bold" />
 
             <ImageView
+                android:id="@+id/ivTodaySafetyImage"
                 android:layout_width="match_parent"
                 android:layout_height="130dp"
                 android:layout_marginTop="8dp"
                 android:scaleType="fitCenter"
                 android:src="@drawable/sample_safety" />
 
-            <TextView
+            <LinearLayout
+                android:id="@+id/todaySafetyBullets"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
-                android:text="· 예취날을 무리하게 휘두르거나 지면에 닿지 않도록 한다."
-                android:textColor="#000000"
-                android:textSize="12sp"
-                android:fontFamily="@font/paperlogy_3light" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
-                android:text="· 핸들은 양손으로 잡고 반드시 오른쪽에서 왼쪽방향으로 한다."
-                android:textColor="#000000"
-                android:textSize="12sp"
-                android:fontFamily="@font/paperlogy_3light" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
-                android:text="· 왼쪽에서 오른쪽으로 작업할 경우 돌, 나무, 부러진 등에 예취날이 부딪혀 위험하다."
-                android:textColor="#000000"
-                android:textSize="12sp"
-                android:fontFamily="@font/paperlogy_3light" />
+                android:orientation="vertical" />
 
         </LinearLayout>
 
