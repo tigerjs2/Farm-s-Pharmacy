@@ -42,43 +42,42 @@ class MonthlyDiseaseActivity : AppCompatActivity() {
         val rows: List<CropDiseaseRow>
     )
 
-    private val commonDiseaseData = listOf(
-        MonthCommonDisease(1, "겨울", listOf("잿빛곰팡이병", "노균병")),
-        MonthCommonDisease(2, "겨울", listOf("잿빛곰팡이병", "노균병")),
-        MonthCommonDisease(3, "봄", listOf("잿빛곰팡이병", "노균병")),
-        MonthCommonDisease(4, "봄", listOf("잿빛곰팡이병", "노균병")),
-        MonthCommonDisease(5, "봄", listOf("잿빛곰팡이병", "노균병")),
-        MonthCommonDisease(6, "여름", listOf("잿빛곰팡이병", "노균병")),
-        MonthCommonDisease(7, "여름", listOf("잿빛곰팡이병", "노균병")),
-        MonthCommonDisease(8, "여름", listOf("잿빛곰팡이병", "노균병")),
-        MonthCommonDisease(9, "가을", listOf("잿빛곰팡이병", "노균병")),
-        MonthCommonDisease(10, "가을", listOf("잿빛곰팡이병", "노균병")),
-        MonthCommonDisease(11, "가을", listOf("잿빛곰팡이병", "노균병")),
-        MonthCommonDisease(12, "겨울", listOf("잿빛곰팡이병", "노균병"))
-    )
-
-    private val sampleCropRows = listOf(
-        CropDiseaseRow("딸기", listOf("잿빛곰팡이병", "흰가루병")),
-        CropDiseaseRow("오이", listOf("잿빛곰팡이병", "흰가루병")),
-        CropDiseaseRow("토마토", listOf("잿빛곰팡이병", "흰가루병")),
-        CropDiseaseRow("고추", listOf("잿빛곰팡이병", "흰가루병")),
-        CropDiseaseRow("파프리카", listOf("잿빛곰팡이병", "흰가루병")),
-        CropDiseaseRow("포도", listOf("잿빛곰팡이병", "흰가루병"))
-    )
-
-    private val cropDiseaseData = (1..12).map {
-        MonthlyCropDisease(it, sampleCropRows)
-    }
+    private lateinit var commonDiseaseData: List<MonthCommonDisease>
+    private lateinit var cropDiseaseData: List<MonthlyCropDisease>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_monthly_disease)
+
+        loadDataFromJson()
 
         bindViews()
         buildMonthlyCards()
         buildCropAccordions()
 
         setMode(isMonthlyMode = true)
+    }
+
+    private fun loadDataFromJson() {
+
+        val months = DiseaseCalendarRepository.all(this)
+
+        commonDiseaseData = months.map { m ->
+            MonthCommonDisease(
+                month = m.month,
+                season = m.season,
+                diseases = m.common
+            )
+        }
+
+        cropDiseaseData = months.map { m ->
+            MonthlyCropDisease(
+                month = m.month,
+                rows = m.crops.map { c ->
+                    CropDiseaseRow(c.cropName, c.diseases)
+                }
+            )
+        }
     }
 
     private fun bindViews() {

@@ -37,6 +37,7 @@
                 android:gravity="center">
 
                 <TextView
+                    android:id="@+id/tvPrevMonth"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="3월"
@@ -45,6 +46,7 @@
                     android:fontFamily="@font/paperlogy_3light"/>
 
                 <TextView
+                    android:id="@+id/tvCurrMonth"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="4월"
@@ -54,6 +56,7 @@
                     android:fontFamily="@font/paperlogy_7bold"/>
 
                 <TextView
+                    android:id="@+id/tvNextMonth"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="5월"
@@ -71,6 +74,7 @@
                 android:gravity="center">
 
                 <TextView
+                    android:id="@+id/tvPrevDiseases"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="노균병, 탄저병"
@@ -79,6 +83,7 @@
                     android:fontFamily="@font/paperlogy_3light"/>
 
                 <TextView
+                    android:id="@+id/tvCurrDiseases"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="흰가루병"
@@ -88,6 +93,7 @@
                     android:fontFamily="@font/paperlogy_7bold"/>
 
                 <TextView
+                    android:id="@+id/tvNextDiseases"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="잿빛 곰팡이병"
