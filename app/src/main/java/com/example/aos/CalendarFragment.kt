@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.aos.databinding.FragmentCalendarBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import com.google.gson.Gson
 import java.time.LocalDate
 import java.time.format.TextStyle
@@ -266,16 +267,25 @@ class CalendarFragment : Fragment() {
                 todos.clear()
 
                 snapshot.documents
-                    .mapNotNull { doc ->
-                        doc.toObject(TodoItem::class.java)?.also {
-                            it.id = doc.id
-                        }
-                    }
+                    .mapNotNull { doc -> doc.toTodoItemCompat() }
                     .sortedByDescending { it.id }
                     .forEach { todos.add(it) }
 
                 todoAdapter.notifyDataSetChanged()
             }
+    }
+
+    private fun com.google.firebase.firestore.DocumentSnapshot.toTodoItemCompat(): TodoItem? {
+        val title = getString("title") ?: return null
+
+        return TodoItem(
+            id = id,
+            userId = getString("userId") ?: getString("uid") ?: "",
+            date = getString("date") ?: "",
+            title = title,
+            memo = getString("memo") ?: "",
+            isDone = getBoolean("isDone") ?: getBoolean("done") ?: false
+        )
     }
 
     private fun updateTodoDone(item: TodoItem) {
@@ -284,7 +294,13 @@ class CalendarFragment : Fragment() {
         FirebaseFirestore.getInstance()
             .collection("Todos")
             .document(item.id)
-            .update("isDone", item.isDone)
+            .set(
+                mapOf(
+                    "isDone" to item.isDone,
+                    "done" to item.isDone
+                ),
+                SetOptions.merge()
+            )
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -321,7 +337,16 @@ class CalendarFragment : Fragment() {
 
             FirebaseFirestore.getInstance()
                 .collection("Todos")
-                .add(newItem)
+                .add(
+                    mapOf(
+                        "userId" to uid,
+                        "date" to dateStr,
+                        "title" to title,
+                        "memo" to memo,
+                        "isDone" to false,
+                        "done" to false
+                    )
+                )
                 .addOnSuccessListener { docRef ->
                     if (_binding == null) return@addOnSuccessListener
 

@@ -46,6 +46,7 @@ class HomeFragment : Fragment() {
 
     private lateinit var homeCalendarLayoutManager: LinearLayoutManager
     private var currentWeekPageIndex: Int = RecyclerView.NO_POSITION
+    private var currentHomeTodo: TodoItem? = null
 
     // 전남대학교 고정 좌표 (추후 GPS 허용 시 대체)
     private val LAT = 35.1765
@@ -68,6 +69,8 @@ class HomeFragment : Fragment() {
         loadUserName(view)
         loadWeather(view)
         setupHomeCalendar(view)
+        setupHomeTodoCard(view)
+        loadSelectedDateTodo(view)
 
         view.findViewById<ImageView>(R.id.ivProfile).setOnClickListener {
             startActivity(Intent(requireContext(), ProfileActivity::class.java))
@@ -79,6 +82,7 @@ class HomeFragment : Fragment() {
         super.onResume()
         loadUserName(requireView())
         refreshHomeCalendar()
+        loadSelectedDateTodo(requireView())
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -172,11 +176,146 @@ class HomeFragment : Fragment() {
         selectedDate = date
         homeCalendarAdapter.setSelectedDate(date)
         currentWeekPageIndex = homeCalendarAdapter.weekIndexOf(date)
+
+        val root = view ?: return
+        loadSelectedDateTodo(root)
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun startOfWeek(date: LocalDate): LocalDate {
         return date.minusDays(date.dayOfWeek.value.toLong() - 1L)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun setupHomeTodoCard(view: View) {
+        view.findViewById<ImageView>(R.id.btnHomeTodoCheck).setOnClickListener {
+            val todo = currentHomeTodo ?: return@setOnClickListener
+            if (todo.id.isEmpty()) return@setOnClickListener
+
+            val checkButton = view.findViewById<ImageView>(R.id.btnHomeTodoCheck)
+            checkButton.isEnabled = false
+
+            Firebase.firestore
+                .collection("Todos")
+                .document(todo.id)
+                .update("isDone", true)
+                .addOnSuccessListener {
+                    currentHomeTodo = null
+                    loadSelectedDateTodo(view)
+                }
+                .addOnFailureListener {
+                    checkButton.isEnabled = true
+                }
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun loadSelectedDateTodo(view: View) {
+        updateHomeFarmTitle(view)
+        renderHomeTodoLoading(view)
+
+        val uid = mAuth.currentUser?.uid
+        if (uid == null) {
+            renderHomeTodoEmpty(
+                view,
+                title = "로그인이 필요해요",
+                memo = "할 일을 불러올 수 없습니다."
+            )
+            return
+        }
+
+        val requestDate = selectedDate
+        val dateStr = requestDate.toString()
+
+        Firebase.firestore
+            .collection("Todos")
+            .whereEqualTo("userId", uid)
+            .whereEqualTo("date", dateStr)
+            .get()
+            .addOnSuccessListener { snapshot ->
+                if (!isAdded || selectedDate != requestDate) return@addOnSuccessListener
+
+                val firstUndoneTodo = snapshot.documents
+                    .mapNotNull { doc ->
+                        doc.toObject(TodoItem::class.java)?.also { item ->
+                            item.id = doc.id
+                        }
+                    }
+                    .filter { !it.isDone }
+                    .sortedByDescending { it.id }
+                    .firstOrNull()
+
+                renderHomeTodo(view, firstUndoneTodo)
+            }
+            .addOnFailureListener {
+                if (!isAdded || selectedDate != requestDate) return@addOnFailureListener
+
+                renderHomeTodoEmpty(
+                    view,
+                    title = "할 일을 불러오지 못했어요",
+                    memo = "잠시 후 다시 시도해주세요."
+                )
+            }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun updateHomeFarmTitle(view: View) {
+        val titleView = view.findViewById<TextView>(R.id.tvHomeFarmTitle)
+
+        titleView.text = if (selectedDate == today) {
+            "오늘의 농사"
+        } else {
+            "${selectedDate.monthValue}월 ${selectedDate.dayOfMonth}일 농사"
+        }
+    }
+
+    private fun renderHomeTodoLoading(view: View) {
+        currentHomeTodo = null
+
+        view.findViewById<TextView>(R.id.tvHomeTodoTitle).text = "할 일을 불러오는 중..."
+        view.findViewById<TextView>(R.id.tvHomeTodoMemo).text = ""
+
+        view.findViewById<ImageView>(R.id.btnHomeTodoCheck).apply {
+            setImageResource(R.drawable.ic_check_outline)
+            alpha = 0.35f
+            isEnabled = false
+        }
+    }
+
+    private fun renderHomeTodo(view: View, todo: TodoItem?) {
+        if (todo == null) {
+            renderHomeTodoEmpty(
+                view,
+                title = "처리할 일이 없어요",
+                memo = "선택한 날짜의 To do를 모두 완료했어요."
+            )
+            return
+        }
+
+        currentHomeTodo = todo
+
+        view.findViewById<TextView>(R.id.tvHomeTodoTitle).text = todo.title
+        view.findViewById<TextView>(R.id.tvHomeTodoMemo).text =
+            todo.memo.ifBlank { "메모 없음" }
+
+        view.findViewById<ImageView>(R.id.btnHomeTodoCheck).apply {
+            setImageResource(R.drawable.ic_check_outline)
+            alpha = 1f
+            isEnabled = true
+        }
+    }
+
+    private fun renderHomeTodoEmpty(view: View, title: String, memo: String) {
+        currentHomeTodo = null
+
+        view.findViewById<TextView>(R.id.tvHomeTodoTitle).text = title
+        view.findViewById<TextView>(R.id.tvHomeTodoMemo).text = memo
+
+        view.findViewById<ImageView>(R.id.btnHomeTodoCheck).apply {
+            setImageResource(R.drawable.ic_check)
+            alpha = 0.35f
+            isEnabled = false
+        }
     }
 
     private fun loadUserName(view: View) {
