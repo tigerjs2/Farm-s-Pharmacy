@@ -11,15 +11,14 @@ import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.aos.databinding.FragmentCalendarBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import java.time.LocalDate
 import java.time.format.TextStyle
 import java.util.Locale
-import com.google.android.material.bottomsheet.BottomSheetDialog
 
 class CalendarFragment : Fragment() {
 
@@ -28,16 +27,23 @@ class CalendarFragment : Fragment() {
 
     private val gson = Gson()
 
-    // 오늘 날짜
     @RequiresApi(Build.VERSION_CODES.O)
     private val today = LocalDate.now()
 
-    // 현재 선택 날짜
     @RequiresApi(Build.VERSION_CODES.O)
     private var selectedDate = today
 
-    // 날짜별 병해 데이터
-    private val dayStat = mutableMapOf<Int, Pair<Int, Int>>()
+    @RequiresApi(Build.VERSION_CODES.O)
+    private var weekStartDates: List<LocalDate> = emptyList()
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private var dayStat: Map<LocalDate, CalendarDayStat> = emptyMap()
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private lateinit var calendarAdapter: WeekCalendarAdapter
+
+    private lateinit var calendarLayoutManager: LinearLayoutManager
+    private var currentWeekPageIndex: Int = RecyclerView.NO_POSITION
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreateView(
@@ -53,13 +59,10 @@ class CalendarFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // 현재 월 표시
-        binding.tvMonth.text =
-            today.month.getDisplayName(TextStyle.FULL, Locale.ENGLISH)
-
         loadStats()
         setupCalendar()
-        updateDiseaseCard(selectedDate.dayOfMonth)
+        updateMonthTitle()
+        updateDiseaseCard(selectedDate)
         setupTodoList()
     }
 
@@ -69,207 +72,160 @@ class CalendarFragment : Fragment() {
 
         if (_binding != null) {
             loadStats()
-            setupCalendar()
-            updateDiseaseCard(selectedDate.dayOfMonth)
+            if (::calendarAdapter.isInitialized) {
+                calendarAdapter.updateStats(dayStat)
+                calendarAdapter.setSelectedDate(selectedDate)
+            }
+            updateMonthTitle()
+            updateDiseaseCard(selectedDate)
             loadTodos()
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun loadStats() {
-
-        dayStat.clear()
-
-        val prefs = requireContext().getSharedPreferences(
-            "HistoryPrefs",
-            android.content.Context.MODE_PRIVATE
-        )
-
-        val json = prefs.getString("history_items", "[]") ?: "[]"
-
-        val type = object : TypeToken<List<HistoryItem>>() {}.type
-
-        val items: List<HistoryItem> = try {
-            gson.fromJson(json, type)
-        } catch (e: Exception) {
-            emptyList()
-        }
-
-        items.forEach { item ->
-
-            val day = item.date
-                .substringAfterLast(".")
-                .trimStart('0')
-                .toIntOrNull()
-                ?: return@forEach
-
-            val current = dayStat.getOrDefault(day, Pair(0, 0))
-
-            dayStat[day] = Pair(
-                current.first + 1,
-                current.second + if (item.isTreated) 1 else 0
-            )
-        }
-
-        // 더미 데이터
-        if (dayStat.isEmpty()) {
-            dayStat[16] = Pair(1, 0)
-            dayStat[18] = Pair(1, 1)
-            dayStat[today.dayOfMonth] = Pair(6, 0)
-        }
+        dayStat = CalendarHistoryStats.load(requireContext(), gson)
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun setupCalendar() {
+        val baseWeekStart = startOfWeek(today)
 
-        // 오늘 기준 -3 ~ +3
-        val dates = (-3..3).map {
-            today.plusDays(it.toLong())
+        // 한 페이지가 월~일 7일이다. 앞뒤 2년치 주간 페이지를 준비한다.
+        weekStartDates = (-104..104).map { offset ->
+            baseWeekStart.plusWeeks(offset.toLong())
         }
 
-        val dayViews: List<Triple<View, android.widget.ImageView, android.widget.TextView>> = listOf(
-            Triple(binding.vDay16, binding.ivDisease16, binding.tvDay16),
-            Triple(binding.vDay17, binding.ivDisease17, binding.tvDay17),
-            Triple(binding.vDay18, binding.ivDisease18, binding.tvDay18),
-            Triple(binding.vDay19, binding.ivDisease19, binding.tvDay19),
-            Triple(binding.vDay20, binding.ivDisease20, binding.tvDay20),
-            Triple(binding.vDay21, binding.ivDisease21, binding.tvDay21),
-            Triple(binding.vDay22, binding.ivDisease22, binding.tvDay22)
+        calendarAdapter = WeekCalendarAdapter(
+            weekStartDates = weekStartDates,
+            selectedDate = selectedDate,
+            stats = dayStat
+        ) { date ->
+            selectDate(date)
+        }
+
+        calendarLayoutManager = LinearLayoutManager(
+            requireContext(),
+            LinearLayoutManager.HORIZONTAL,
+            false
         )
 
-        dayViews.forEachIndexed { index, views ->
+        binding.rvCalendar.apply {
+            layoutManager = calendarLayoutManager
+            adapter = calendarAdapter
+            itemAnimator = null
+            overScrollMode = View.OVER_SCROLL_NEVER
+            clipChildren = false
+            clipToPadding = false
 
-            val date = dates[index]
+            if (onFlingListener == null) {
+                SingleWeekSnapHelper().attachToRecyclerView(this)
+            }
 
-            val bgView = views.first
-            val diseaseIcon = views.second
-            val dayText = views.third
-
-            // 날짜 표시
-            dayText.text = date.dayOfMonth.toString()
-
-            // 병해 표시
-            val stat = dayStat[date.dayOfMonth]
-
-            if (stat == null || stat.first == 0) {
-
-                diseaseIcon.visibility = View.GONE
-
-            } else {
-
-                val total = stat.first
-
-                diseaseIcon.setImageResource(
-                    when {
-                        total == 0 -> R.drawable.calendar_no_disease
-                        total < 5 -> R.drawable.calendar_yellow_disease
-                        else -> R.drawable.calendar_disease
+            addOnScrollListener(object : RecyclerView.OnScrollListener() {
+                override fun onScrollStateChanged(rv: RecyclerView, newState: Int) {
+                    super.onScrollStateChanged(rv, newState)
+                    if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+                        updateSelectedDateFromSnappedWeek()
                     }
-                )
+                }
+            })
+        }
 
-                diseaseIcon.visibility = View.VISIBLE
-            }
+        moveToSelectedWeekWithoutAnimation()
+    }
 
-            // 선택 색상
-            updateDayTint(bgView, date == selectedDate)
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun moveToSelectedWeekWithoutAnimation() {
+        val selectedWeekIndex = calendarAdapter.weekIndexOf(selectedDate)
+        if (selectedWeekIndex == -1) return
 
-            // 날짜 글자색
-            dayText.setTextColor(
-                if (date == selectedDate)
-                    ContextCompat.getColor(requireContext(), android.R.color.white)
-                else
-                    ContextCompat.getColor(requireContext(), R.color.black)
-            )
-
-            // 클릭
-            bgView.setOnClickListener {
-
-                selectedDate = date
-
-                setupCalendar()
-
-                updateDiseaseCard(selectedDate.dayOfMonth)
-
-                loadTodos()
-            }
+        currentWeekPageIndex = selectedWeekIndex
+        binding.rvCalendar.post {
+            calendarLayoutManager.scrollToPositionWithOffset(selectedWeekIndex, 0)
         }
     }
 
-    private fun updateDayTint(view: View, isSelected: Boolean) {
-        view.backgroundTintList =
-            if (isSelected) {
-                ContextCompat.getColorStateList(requireContext(), R.color.primary_green)
-            } else {
-                null
-            }
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun updateSelectedDateFromSnappedWeek() {
+        val firstVisible = calendarLayoutManager.findFirstCompletelyVisibleItemPosition()
+        val pageIndex = if (firstVisible != RecyclerView.NO_POSITION) {
+            firstVisible
+        } else {
+            calendarLayoutManager.findFirstVisibleItemPosition()
+        }
+
+        if (pageIndex == RecyclerView.NO_POSITION || pageIndex == currentWeekPageIndex) return
+
+        currentWeekPageIndex = pageIndex
+        val dateInNewWeek = calendarAdapter.dateAtSameWeekday(pageIndex, selectedDate)
+        selectDate(dateInNewWeek)
     }
 
-    private fun updateDiseaseCard(day: Int) {
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun selectDate(date: LocalDate) {
+        selectedDate = date
+        calendarAdapter.setSelectedDate(date)
+        currentWeekPageIndex = calendarAdapter.weekIndexOf(date)
+        updateMonthTitle()
+        updateDiseaseCard(date)
+        loadTodos()
+    }
 
-        val stat = dayStat[day]
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun updateMonthTitle() {
+        binding.tvMonth.text =
+            selectedDate.month.getDisplayName(TextStyle.FULL, Locale.ENGLISH)
+    }
 
-        val total = stat?.first ?: 0
-        val treated = stat?.second ?: 0
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun updateDiseaseCard(date: LocalDate) {
+        val stat = dayStat[date]
 
-        val untreated = total - treated
+        val total = stat?.total ?: 0
+        val treated = stat?.treated ?: 0
+        val untreated = (total - treated).coerceAtLeast(0)
 
-        binding.tvDiseaseCount.text = "병해 ${untreated}건"
+        // 병해 건수는 전체 건수 고정. 처치 완료를 눌러도 줄어들지 않는다.
+        binding.tvDiseaseCount.text = "병해 ${total}건"
 
-        binding.tvDiseaseType.text =
-            if (total == 0)
-                "진단 질병: x"
-            else
-                "진단 질병: 노균병, 기타"
+        binding.tvDiseaseType.text = if (total == 0) {
+            "진단 질병: x"
+        } else {
+            val diseases = stat?.diseaseNames
+                ?.filter { it.isNotBlank() }
+                ?.joinToString(", ")
+                ?.ifBlank { "-" }
+                ?: "-"
+            "진단 질병: $diseases"
+        }
 
         val colorRes = when {
-
-            total == 0 ->
-                R.color.primary_light
-
-            total < 5 ->
-                R.color.yellow
-
-            else ->
-                R.color.orange
+            total == 0 -> R.color.primary_light
+            total < 5 -> R.color.yellow
+            else -> R.color.orange
         }
 
-        val barRatio =
-            if (total == 0)
-                0f
-            else
-                untreated.toFloat() / total.toFloat()
-
-        val color =
-            ContextCompat.getColorStateList(requireContext(), colorRes)
+        // 처리 필요 바만 미처치/전체 비율로 왼쪽으로 줄어든다.
+        val barRatio = if (total == 0) 0f else untreated.toFloat() / total.toFloat()
+        val color = ContextCompat.getColorStateList(requireContext(), colorRes)
 
         binding.viewDiseaseOrb.backgroundTintList = color
         binding.viewBarFill.backgroundTintList = color
 
         binding.viewBarFill.post {
-
-            val parentWidth =
-                (binding.viewBarFill.parent as View).width
-
-            val targetWidth =
-                (parentWidth * barRatio).toInt()
-
-            val currentWidth =
-                binding.viewBarFill.width
+            val parentWidth = (binding.viewBarFill.parent as View).width
+            val targetWidth = (parentWidth * barRatio).toInt()
+            val currentWidth = binding.viewBarFill.width
 
             ValueAnimator.ofInt(currentWidth, targetWidth).apply {
-
                 duration = 500
-
                 interpolator = DecelerateInterpolator()
-
                 addUpdateListener { anim: ValueAnimator ->
-
                     val lp = binding.viewBarFill.layoutParams
-
                     lp.width = anim.animatedValue as Int
-
                     binding.viewBarFill.layoutParams = lp
                 }
-
                 start()
             }
         }
@@ -280,14 +236,11 @@ class CalendarFragment : Fragment() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun setupTodoList() {
-
         todoAdapter = TodoAdapter(todos) { item ->
             updateTodoDone(item)
         }
 
-        binding.rvTodoList.layoutManager =
-            LinearLayoutManager(requireContext())
-
+        binding.rvTodoList.layoutManager = LinearLayoutManager(requireContext())
         binding.rvTodoList.adapter = todoAdapter
 
         binding.btnAddTodo.setOnClickListener {
@@ -299,7 +252,6 @@ class CalendarFragment : Fragment() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun loadTodos() {
-
         val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
         val dateStr = selectedDate.toString()
 
@@ -309,7 +261,6 @@ class CalendarFragment : Fragment() {
             .whereEqualTo("date", dateStr)
             .get()
             .addOnSuccessListener { snapshot ->
-
                 if (_binding == null) return@addOnSuccessListener
 
                 todos.clear()
@@ -328,7 +279,6 @@ class CalendarFragment : Fragment() {
     }
 
     private fun updateTodoDone(item: TodoItem) {
-
         if (item.id.isEmpty()) return
 
         FirebaseFirestore.getInstance()
@@ -339,26 +289,18 @@ class CalendarFragment : Fragment() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun showAddTodoBottomSheet() {
-
-        val dialog =
-            com.google.android.material.bottomsheet.BottomSheetDialog(requireContext())
+        val dialog = com.google.android.material.bottomsheet.BottomSheetDialog(requireContext())
 
         val view = layoutInflater.inflate(
             R.layout.bottom_sheet_add_todo,
             null
         )
 
-        val etTitle =
-            view.findViewById<android.widget.EditText>(R.id.etTodoTitle)
-
-        val etMemo =
-            view.findViewById<android.widget.EditText>(R.id.etTodoMemo)
-
-        val btnSave =
-            view.findViewById<android.widget.ImageButton>(R.id.btnSaveTodo)
+        val etTitle = view.findViewById<android.widget.EditText>(R.id.etTodoTitle)
+        val etMemo = view.findViewById<android.widget.EditText>(R.id.etTodoMemo)
+        val btnSave = view.findViewById<android.widget.ImageButton>(R.id.btnSaveTodo)
 
         btnSave.setOnClickListener {
-
             val title = etTitle.text.toString().trim()
             val memo = etMemo.text.toString().trim()
 
@@ -381,17 +323,12 @@ class CalendarFragment : Fragment() {
                 .collection("Todos")
                 .add(newItem)
                 .addOnSuccessListener { docRef ->
-
                     if (_binding == null) return@addOnSuccessListener
 
                     newItem.id = docRef.id
-
                     todos.add(0, newItem)
-
                     todoAdapter.notifyItemInserted(0)
-
                     binding.rvTodoList.scrollToPosition(0)
-
                     dialog.dismiss()
                 }
                 .addOnFailureListener {
@@ -401,6 +338,11 @@ class CalendarFragment : Fragment() {
 
         dialog.setContentView(view)
         dialog.show()
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun startOfWeek(date: LocalDate): LocalDate {
+        return date.minusDays(date.dayOfWeek.value.toLong() - 1L)
     }
 
     override fun onDestroyView() {

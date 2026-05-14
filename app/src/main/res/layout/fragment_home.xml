@@ -40,125 +40,17 @@
         </LinearLayout>
 
         <!-- 주간 캘린더 -->
-        <LinearLayout
-            android:id="@+id/llCalendar"
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvHomeCalendar"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:paddingHorizontal="16dp"
-            android:paddingBottom="16dp">
-
-            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
-                android:layout_weight="1" android:orientation="vertical" android:gravity="center">
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="월" android:textSize="13sp" android:textColor="@color/gray"
-                    android:fontFamily="@font/paperlogy_3light"/>
-                <FrameLayout android:layout_width="51dp" android:layout_height="77dp">
-                    <View android:layout_width="match_parent" android:layout_height="match_parent"
-                        android:background="@drawable/calendar_normal"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:text="16" android:textSize="12sp" android:textColor="@color/gray"
-                        android:fontFamily="@font/paperlogy_3light"
-                        android:layout_gravity="top|center_horizontal" android:paddingTop="6dp"/>
-                    <ImageView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:src="@drawable/calendar_disease"
-                        android:layout_gravity="bottom|center_horizontal"
-                        android:layout_marginBottom="4dp"/>
-                </FrameLayout>
-            </LinearLayout>
-
-            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
-                android:layout_weight="1" android:orientation="vertical" android:gravity="center">
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="화" android:textSize="13sp" android:textColor="@color/gray"
-                    android:fontFamily="@font/paperlogy_3light"/>
-                <FrameLayout android:layout_width="51dp" android:layout_height="77dp">
-                    <View android:layout_width="match_parent" android:layout_height="match_parent"
-                        android:background="@drawable/calendar_normal"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:text="17" android:textSize="12sp" android:textColor="@color/gray"
-                        android:fontFamily="@font/paperlogy_3light"
-                        android:layout_gravity="top|center_horizontal" android:paddingTop="6dp"/>
-                </FrameLayout>
-            </LinearLayout>
-
-            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
-                android:layout_weight="1" android:orientation="vertical" android:gravity="center">
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="수" android:textSize="13sp" android:textColor="@color/gray"
-                    android:fontFamily="@font/paperlogy_3light"/>
-                <FrameLayout android:layout_width="51dp" android:layout_height="77dp">
-                    <View android:layout_width="match_parent" android:layout_height="match_parent"
-                        android:background="@drawable/calendar_normal"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:text="18" android:textSize="12sp" android:textColor="@color/gray"
-                        android:fontFamily="@font/paperlogy_3light"
-                        android:layout_gravity="top|center_horizontal" android:paddingTop="6dp"/>
-                </FrameLayout>
-            </LinearLayout>
-
-            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
-                android:layout_weight="1" android:orientation="vertical" android:gravity="center">
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="목" android:textSize="13sp" android:textColor="@color/black"
-                    android:fontFamily="@font/paperlogy_3light"/>
-                <FrameLayout android:layout_width="51dp" android:layout_height="77dp">
-                    <View android:layout_width="match_parent" android:layout_height="match_parent"
-                        android:background="@drawable/calendar_normal"/>
-                    <TextView android:id="@+id/tvToday"
-                        android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:text="19" android:textSize="12sp" android:textColor="@color/black"
-                        android:fontFamily="@font/paperlogy_3light"
-                        android:layout_gravity="top|center_horizontal" android:paddingTop="6dp"/>
-                </FrameLayout>
-            </LinearLayout>
-
-            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
-                android:layout_weight="1" android:orientation="vertical" android:gravity="center">
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="금" android:textSize="13sp" android:textColor="@color/gray"
-                    android:fontFamily="@font/paperlogy_3light"/>
-                <FrameLayout android:layout_width="51dp" android:layout_height="77dp">
-                    <View android:layout_width="match_parent" android:layout_height="match_parent"
-                        android:background="@drawable/calendar_normal"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:text="20" android:textSize="12sp" android:textColor="@color/gray"
-                        android:fontFamily="@font/paperlogy_3light"
-                        android:layout_gravity="top|center_horizontal" android:paddingTop="6dp"/>
-                </FrameLayout>
-            </LinearLayout>
-
-            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
-                android:layout_weight="1" android:orientation="vertical" android:gravity="center">
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="토" android:textSize="13sp" android:textColor="@color/gray"
-                    android:fontFamily="@font/paperlogy_3light"/>
-                <FrameLayout android:layout_width="51dp" android:layout_height="77dp">
-                    <View android:layout_width="match_parent" android:layout_height="match_parent"
-                        android:background="@drawable/calendar_normal"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:text="21" android:textSize="12sp" android:textColor="@color/gray"
-                        android:fontFamily="@font/paperlogy_3light"
-                        android:layout_gravity="top|center_horizontal" android:paddingTop="6dp"/>
-                </FrameLayout>
-            </LinearLayout>
-
-            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
-                android:layout_weight="1" android:orientation="vertical" android:gravity="center">
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="일" android:textSize="13sp" android:textColor="@color/gray"
-                    android:fontFamily="@font/paperlogy_3light"/>
-                <FrameLayout android:layout_width="51dp" android:layout_height="77dp">
-                    <View android:layout_width="match_parent" android:layout_height="match_parent"
-                        android:background="@drawable/calendar_normal"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:text="22" android:textSize="12sp" android:textColor="@color/gray"
-                        android:fontFamily="@font/paperlogy_3light"
-                        android:layout_gravity="top|center_horizontal" android:paddingTop="6dp"/>
-                </FrameLayout>
-            </LinearLayout>
-
-        </LinearLayout>
+            android:layout_height="116dp"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:overScrollMode="never"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="2dp"
+            android:paddingBottom="8dp" />
 
         <!-- 오늘의 농사 타이틀 -->
         <TextView
