@@ -26,79 +26,103 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:background="@drawable/bg_guide_card"
-            android:orientation="horizontal"
+            android:orientation="vertical"
             android:padding="20dp">
 
-            <!-- 월 -->
+            <!-- 이전 월 / 이전 질병 -->
             <LinearLayout
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:gravity="center">
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
 
                 <TextView
                     android:id="@+id/tvPrevMonth"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="3월"
-                    android:textSize="20sp"
-                    android:textColor="#999999"
-                    android:fontFamily="@font/paperlogy_3light"/>
-
-                <TextView
-                    android:id="@+id/tvCurrMonth"
-                    android:layout_width="wrap_content"
+                    android:layout_width="80dp"
                     android:layout_height="wrap_content"
                     android:text="4월"
-                    android:textSize="42sp"
-                    android:textStyle="bold"
-                    android:textColor="#000000"
-                    android:fontFamily="@font/paperlogy_7bold"/>
-
-                <TextView
-                    android:id="@+id/tvNextMonth"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="5월"
                     android:textSize="20sp"
                     android:textColor="#999999"
+                    android:gravity="center"
+                    android:includeFontPadding="false"
                     android:fontFamily="@font/paperlogy_3light"/>
-            </LinearLayout>
-
-            <!-- 병명 -->
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="80dp"
-                android:orientation="vertical"
-                android:gravity="center">
 
                 <TextView
                     android:id="@+id/tvPrevDiseases"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="노균병, 탄저병"
+                    android:layout_marginStart="24dp"
+                    android:layout_weight="1"
+                    android:text="역병, 노균병, 탄저병"
                     android:textSize="20sp"
                     android:textColor="#999999"
+                    android:includeFontPadding="false"
                     android:fontFamily="@font/paperlogy_3light"/>
+            </LinearLayout>
+
+            <!-- 현재 월 / 현재 질병 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
 
                 <TextView
-                    android:id="@+id/tvCurrDiseases"
-                    android:layout_width="wrap_content"
+                    android:id="@+id/tvCurrMonth"
+                    android:layout_width="80dp"
                     android:layout_height="wrap_content"
-                    android:text="흰가루병"
+                    android:text="5월"
                     android:textSize="42sp"
                     android:textStyle="bold"
                     android:textColor="#000000"
+                    android:gravity="center"
+                    android:includeFontPadding="false"
                     android:fontFamily="@font/paperlogy_7bold"/>
 
                 <TextView
-                    android:id="@+id/tvNextDiseases"
-                    android:layout_width="wrap_content"
+                    android:id="@+id/tvCurrDiseases"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="잿빛 곰팡이병"
+                    android:layout_marginStart="24dp"
+                    android:layout_weight="1"
+                    android:text="역병, 노균병, 탄저병"
+                    android:textSize="28sp"
+                    android:textStyle="bold"
+                    android:textColor="#000000"
+                    android:includeFontPadding="false"
+                    android:fontFamily="@font/paperlogy_7bold"/>
+            </LinearLayout>
+
+            <!-- 다음 월 / 다음 질병 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:id="@+id/tvNextMonth"
+                    android:layout_width="80dp"
+                    android:layout_height="wrap_content"
+                    android:text="6월"
                     android:textSize="20sp"
                     android:textColor="#999999"
+                    android:gravity="center"
+                    android:includeFontPadding="false"
+                    android:fontFamily="@font/paperlogy_3light"/>
+
+                <TextView
+                    android:id="@+id/tvNextDiseases"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="24dp"
+                    android:layout_weight="1"
+                    android:text="역병, 탄저병, 노균병"
+                    android:textSize="20sp"
+                    android:textColor="#999999"
+                    android:includeFontPadding="false"
                     android:fontFamily="@font/paperlogy_3light"/>
             </LinearLayout>
 
