@@ -11,6 +11,7 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.annotation.RequiresApi
+import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
@@ -36,7 +37,6 @@ class GuideFragment : Fragment() {
             startActivity(Intent(requireContext(), MonthlyDiseaseActivity::class.java))
         }
 
-
         view.findViewById<Button>(R.id.btnToolGuide).setOnClickListener {
             startActivity(Intent(requireContext(), ToolGuideActivity::class.java))
         }
@@ -61,26 +61,42 @@ class GuideFragment : Fragment() {
     }
 
     private fun loadTodaySafety() {
+        val appContext = requireContext().applicationContext
 
         lifecycleScope.launch {
-
             val guide = withContext(Dispatchers.IO) {
-                NongsaroApiService.getRandomToolGuide()
+                TodaySafetyRepository.getTodaySafety(appContext)
             }
 
             val view = rootView ?: return@launch
-            guide ?: return@launch
 
-            view.findViewById<TextView>(R.id.tvTodaySafetyTitle).text = guide.title
+            if (guide == null) {
+                view.findViewById<TextView>(R.id.tvTodaySafetyTitle).text =
+                    "안전 지침을 불러오지 못했어요"
+                view.findViewById<ImageView>(R.id.ivTodaySafetyImage).visibility = View.GONE
+                renderBullets(
+                    view.findViewById(R.id.todaySafetyBullets),
+                    listOf("잠시 후 다시 시도해주세요.")
+                )
+                return@launch
+            }
+
+            view.findViewById<TextView>(R.id.tvTodaySafetyTitle).text =
+                guide.title.ifBlank { guide.safeacdntSeNm.ifBlank { "오늘의 안전 지침" } }
 
             val image = view.findViewById<ImageView>(R.id.ivTodaySafetyImage)
             if (guide.imageUrl.isNotBlank()) {
-                Glide.with(this@GuideFragment).load(guide.imageUrl).into(image)
+                image.visibility = View.VISIBLE
+                Glide.with(this@GuideFragment).load(guide.imageUrl).fitCenter().into(image)
+            } else {
+                image.visibility = View.GONE
+                image.setImageDrawable(null)
             }
 
             renderBullets(
                 view.findViewById(R.id.todaySafetyBullets),
-                splitBullets(guide.content)
+                TodaySafetyRepository.splitBullets(guide.content)
+                    .ifEmpty { listOf("자세한 안전 지침을 확인해주세요.") }
             )
         }
     }
@@ -92,28 +108,11 @@ class GuideFragment : Fragment() {
                 this.text = "· $text"
                 textSize = 12f
                 setTextColor(0xFF000000.toInt())
-                typeface = resources.getFont(R.font.paperlogy_3light)
+                typeface = ResourcesCompat.getFont(requireContext(), R.font.paperlogy_3light)
                 setPadding(0, 8, 0, 0)
             }
             container.addView(tv)
         }
-    }
-
-    private fun splitBullets(content: String): List<String> {
-        if (content.isBlank()) return emptyList()
-        return content
-            .replace(Regex("(?i)<br\\s*/?>"), "\n")
-            .replace(Regex("</p\\s*>", RegexOption.IGNORE_CASE), "\n")
-            .replace(Regex("<[^>]+>"), "")
-            .replace("&nbsp;", " ")
-            .replace("&amp;", "&")
-            .replace("&lt;", "<")
-            .replace("&gt;", ">")
-            .replace("&quot;", "\"")
-            .split("\n")
-            .map { it.trim().trimStart('·', '○', '•', '-', ' ') }
-            .map { it.trim() }
-            .filter { it.isNotEmpty() }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)

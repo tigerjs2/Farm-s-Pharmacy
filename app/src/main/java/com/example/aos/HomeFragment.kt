@@ -7,8 +7,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.annotation.RequiresApi
+import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -17,6 +19,7 @@ import com.bumptech.glide.Glide
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
+import com.google.firebase.firestore.SetOptions
 import com.google.gson.JsonObject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -47,6 +50,7 @@ class HomeFragment : Fragment() {
     private lateinit var homeCalendarLayoutManager: LinearLayoutManager
     private var currentWeekPageIndex: Int = RecyclerView.NO_POSITION
     private var currentHomeTodo: TodoItem? = null
+    private var currentSafetyGuide: ToolGuide? = null
 
     // 전남대학교 고정 좌표 (추후 GPS 허용 시 대체)
     private val LAT = 35.1765
@@ -71,6 +75,7 @@ class HomeFragment : Fragment() {
         setupHomeCalendar(view)
         setupHomeTodoCard(view)
         loadSelectedDateTodo(view)
+        setupTodaySafety(view)
 
         view.findViewById<ImageView>(R.id.ivProfile).setOnClickListener {
             startActivity(Intent(requireContext(), ProfileActivity::class.java))
@@ -83,6 +88,7 @@ class HomeFragment : Fragment() {
         loadUserName(requireView())
         refreshHomeCalendar()
         loadSelectedDateTodo(requireView())
+        loadTodaySafety(requireView())
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -198,8 +204,15 @@ class HomeFragment : Fragment() {
             Firebase.firestore
                 .collection("Todos")
                 .document(todo.id)
-                .update("isDone", true)
+                .set(
+                    mapOf(
+                        "isDone" to true,
+                        "done" to true
+                    ),
+                    SetOptions.merge()
+                )
                 .addOnSuccessListener {
+                    todo.isDone = true
                     currentHomeTodo = null
                     loadSelectedDateTodo(view)
                 }
@@ -236,11 +249,7 @@ class HomeFragment : Fragment() {
                 if (!isAdded || selectedDate != requestDate) return@addOnSuccessListener
 
                 val firstUndoneTodo = snapshot.documents
-                    .mapNotNull { doc ->
-                        doc.toObject(TodoItem::class.java)?.also { item ->
-                            item.id = doc.id
-                        }
-                    }
+                    .mapNotNull { doc -> doc.toTodoItemCompat() }
                     .filter { !it.isDone }
                     .sortedByDescending { it.id }
                     .firstOrNull()
@@ -256,6 +265,19 @@ class HomeFragment : Fragment() {
                     memo = "잠시 후 다시 시도해주세요."
                 )
             }
+    }
+
+    private fun com.google.firebase.firestore.DocumentSnapshot.toTodoItemCompat(): TodoItem? {
+        val title = getString("title") ?: return null
+
+        return TodoItem(
+            id = id,
+            userId = getString("userId") ?: getString("uid") ?: "",
+            date = getString("date") ?: "",
+            title = title,
+            memo = getString("memo") ?: "",
+            isDone = getBoolean("isDone") ?: getBoolean("done") ?: false
+        )
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -317,6 +339,121 @@ class HomeFragment : Fragment() {
             isEnabled = false
         }
     }
+
+
+    private fun setupTodaySafety(view: View) {
+        view.findViewById<View>(R.id.homeSafetyCard).setOnClickListener {
+            openCurrentSafetyGuide()
+        }
+
+        loadTodaySafety(view)
+    }
+
+    private fun loadTodaySafety(view: View) {
+        renderTodaySafetyLoading(view)
+
+        val appContext = requireContext().applicationContext
+        val requestedRoot = view
+
+        lifecycleScope.launch {
+            val guide = withContext(Dispatchers.IO) {
+                TodaySafetyRepository.getTodaySafety(appContext)
+            }
+
+            if (!isAdded || this@HomeFragment.view !== requestedRoot) return@launch
+
+            if (guide == null) {
+                renderTodaySafetyEmpty(requestedRoot)
+            } else {
+                renderTodaySafety(requestedRoot, guide)
+            }
+        }
+    }
+
+    private fun renderTodaySafetyLoading(view: View) {
+        currentSafetyGuide = null
+
+        view.findViewById<TextView>(R.id.tvHomeSafetyTitle).text = "안전 지침을 불러오는 중..."
+        view.findViewById<ImageView>(R.id.ivHomeSafetyImage).apply {
+            visibility = View.GONE
+            setImageDrawable(null)
+        }
+        view.findViewById<LinearLayout>(R.id.homeSafetyBullets).removeAllViews()
+    }
+
+    private fun renderTodaySafetyEmpty(view: View) {
+        currentSafetyGuide = null
+
+        view.findViewById<TextView>(R.id.tvHomeSafetyTitle).text = "안전 지침을 불러오지 못했어요"
+        view.findViewById<ImageView>(R.id.ivHomeSafetyImage).apply {
+            visibility = View.GONE
+            setImageDrawable(null)
+        }
+
+        renderSafetyBullets(
+            view.findViewById(R.id.homeSafetyBullets),
+            listOf("잠시 후 다시 시도해주세요.")
+        )
+
+    }
+
+    private fun renderTodaySafety(view: View, guide: ToolGuide) {
+        currentSafetyGuide = guide
+
+        view.findViewById<TextView>(R.id.tvHomeSafetyTitle).text =
+            guide.title.ifBlank { guide.safeacdntSeNm.ifBlank { "오늘의 안전 지침" } }
+
+        val image = view.findViewById<ImageView>(R.id.ivHomeSafetyImage)
+        if (guide.imageUrl.isNotBlank()) {
+            image.visibility = View.VISIBLE
+            Glide.with(this).load(guide.imageUrl).fitCenter().into(image)
+        } else {
+            image.visibility = View.GONE
+            image.setImageDrawable(null)
+        }
+
+        val bullets = TodaySafetyRepository
+            .splitBullets(guide.content)
+            .take(3)
+            .ifEmpty { listOf("카드를 누르면 자세한 안전 지침을 확인할 수 있어요.") }
+
+        renderSafetyBullets(view.findViewById(R.id.homeSafetyBullets), bullets)
+    }
+
+    private fun renderSafetyBullets(container: LinearLayout, bullets: List<String>) {
+        container.removeAllViews()
+
+        bullets.forEach { text ->
+            val bullet = TextView(requireContext()).apply {
+                this.text = "• $text"
+                textSize = 10f
+                setTextColor(0xFF000000.toInt())
+                typeface = ResourcesCompat.getFont(requireContext(), R.font.paperlogy_4regular)
+                setPadding(0, 0, 0, 6.dpToPx())
+            }
+            container.addView(bullet)
+        }
+    }
+
+    private fun openCurrentSafetyGuide() {
+        val guide = currentSafetyGuide ?: return
+
+        val intent = Intent(requireContext(), ToolGuideDetailActivity::class.java).apply {
+            putExtra(ToolGuideDetailActivity.EXTRA_TOOL_NAME, TodaySafetyRepository.toolNameOf(guide))
+            putExtra(ToolGuideDetailActivity.EXTRA_FOCUS_CNTNTS_NO, guide.cntntsNo)
+            putExtra(ToolGuideDetailActivity.EXTRA_FALLBACK_CNTNTS_NO, guide.cntntsNo)
+            putExtra(ToolGuideDetailActivity.EXTRA_FALLBACK_TITLE, guide.title)
+            putExtra(ToolGuideDetailActivity.EXTRA_FALLBACK_CONTENT, guide.content)
+            putExtra(ToolGuideDetailActivity.EXTRA_FALLBACK_KNMC_NM, guide.knmcNm)
+            putExtra(ToolGuideDetailActivity.EXTRA_FALLBACK_SAFEACDNT_SE_NM, guide.safeacdntSeNm)
+            putExtra(ToolGuideDetailActivity.EXTRA_FALLBACK_IMAGE_URL, guide.imageUrl)
+        }
+
+        startActivity(intent)
+    }
+
+    private fun Int.dpToPx(): Int =
+        (this * resources.displayMetrics.density + 0.5f).toInt()
 
     private fun loadUserName(view: View) {
         val uid = mAuth.currentUser?.uid ?: return

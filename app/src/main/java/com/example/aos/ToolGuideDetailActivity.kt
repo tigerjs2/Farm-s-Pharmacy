@@ -6,6 +6,7 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.res.ResourcesCompat
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import kotlinx.coroutines.Dispatchers
@@ -14,56 +15,90 @@ import kotlinx.coroutines.withContext
 
 class ToolGuideDetailActivity : AppCompatActivity() {
 
+    companion object {
+        const val EXTRA_TOOL_NAME = "toolName"
+        const val EXTRA_FOCUS_CNTNTS_NO = "focusCntntsNo"
+        const val EXTRA_FALLBACK_CNTNTS_NO = "fallbackCntntsNo"
+        const val EXTRA_FALLBACK_TITLE = "fallbackTitle"
+        const val EXTRA_FALLBACK_CONTENT = "fallbackContent"
+        const val EXTRA_FALLBACK_KNMC_NM = "fallbackKnmcNm"
+        const val EXTRA_FALLBACK_SAFEACDNT_SE_NM = "fallbackSafeacdntSeNm"
+        const val EXTRA_FALLBACK_IMAGE_URL = "fallbackImageUrl"
+    }
+
+    private lateinit var container: LinearLayout
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_tool_guide_detail)
 
-        val toolName = intent.getStringExtra("toolName") ?: "방제기"
+        val fallbackGuide = readFallbackGuide()
+        val toolName = intent.getStringExtra(EXTRA_TOOL_NAME)
+            ?: fallbackGuide?.knmcNm
+            ?: "방제기"
+        val focusCntntsNo = intent.getStringExtra(EXTRA_FOCUS_CNTNTS_NO) ?: ""
 
         findViewById<TextView>(R.id.tvToolTitle).text = toolName
+        container = findViewById(R.id.cardContainer)
 
-        loadGuides(toolName)
+        loadGuides(
+            toolName = toolName,
+            focusCntntsNo = focusCntntsNo,
+            fallbackGuide = fallbackGuide
+        )
     }
 
-    private fun loadGuides(toolName: String) {
-
-        val container = findViewById<LinearLayout>(R.id.cardContainer)
-
-        // 로딩 placeholder
-        container.removeAllViews()
-        val loading = TextView(this).apply {
-            text = "불러오는 중..."
-            textSize = 14f
-            setTextColor(getColor(R.color.gray))
-        }
-        container.addView(loading)
+    private fun loadGuides(
+        toolName: String,
+        focusCntntsNo: String,
+        fallbackGuide: ToolGuide?
+    ) {
+        showStatus("불러오는 중...")
 
         lifecycleScope.launch {
-
             val guides = withContext(Dispatchers.IO) {
                 NongsaroApiService.getToolGuides(toolName)
             }
 
+            val displayGuides = mergeGuides(
+                guides = guides,
+                fallbackGuide = fallbackGuide,
+                focusCntntsNo = focusCntntsNo
+            )
+
             container.removeAllViews()
 
-            if (guides.isEmpty()) {
-                val empty = TextView(this@ToolGuideDetailActivity).apply {
-                    text = "관련 안전 지침을 찾지 못했어요."
-                    textSize = 14f
-                    setTextColor(getColor(R.color.gray))
-                }
-                container.addView(empty)
+            if (displayGuides.isEmpty()) {
+                showStatus("관련 안전 지침을 찾지 못했어요.")
                 return@launch
             }
 
-            renderCards(container, guides)
+            renderCards(displayGuides)
         }
     }
 
-    private fun renderCards(container: LinearLayout, guides: List<ToolGuide>) {
+    private fun mergeGuides(
+        guides: List<ToolGuide>,
+        fallbackGuide: ToolGuide?,
+        focusCntntsNo: String
+    ): List<ToolGuide> {
+        val merged = mutableListOf<ToolGuide>()
 
+        if (fallbackGuide != null && guides.none { it.cntntsNo == fallbackGuide.cntntsNo }) {
+            merged.add(fallbackGuide)
+        }
+
+        merged.addAll(guides)
+
+        if (focusCntntsNo.isBlank()) return merged
+
+        return merged.sortedWith(
+            compareBy<ToolGuide> { if (it.cntntsNo == focusCntntsNo) 0 else 1 }
+        )
+    }
+
+    private fun renderCards(guides: List<ToolGuide>) {
         guides.forEach { guide ->
-
             val cardView = layoutInflater.inflate(
                 R.layout.item_tool_safety_card,
                 container,
@@ -71,27 +106,33 @@ class ToolGuideDetailActivity : AppCompatActivity() {
             )
 
             cardView.findViewById<TextView>(R.id.tvCardTitle).text =
-                if (guide.title.isNotBlank()) guide.title else guide.safeacdntSeNm
+                guide.title.ifBlank { guide.safeacdntSeNm.ifBlank { "안전 지침" } }
 
             val ivImage = cardView.findViewById<ImageView>(R.id.ivCardImage)
             if (guide.imageUrl.isNotBlank()) {
                 ivImage.visibility = View.VISIBLE
                 Glide.with(this)
                     .load(guide.imageUrl)
+                    .fitCenter()
                     .into(ivImage)
             } else {
                 ivImage.visibility = View.GONE
+                ivImage.setImageDrawable(null)
             }
 
             val bulletContainer = cardView.findViewById<LinearLayout>(R.id.bulletContainer)
             bulletContainer.removeAllViews()
 
-            extractBullets(guide.content).forEach { text ->
+            val bullets = TodaySafetyRepository
+                .splitBullets(guide.content)
+                .ifEmpty { listOf("안전 지침 내용을 확인해주세요.") }
+
+            bullets.forEach { text ->
                 val bullet = TextView(this).apply {
                     this.text = "· $text"
                     textSize = 13f
                     setTextColor(getColor(R.color.black))
-                    typeface = resources.getFont(R.font.paperlogy_3light)
+                    typeface = ResourcesCompat.getFont(this@ToolGuideDetailActivity, R.font.paperlogy_3light)
                     setPadding(0, 8, 0, 0)
                 }
                 bulletContainer.addView(bullet)
@@ -101,23 +142,30 @@ class ToolGuideDetailActivity : AppCompatActivity() {
         }
     }
 
-    // HTML 태그 제거 + 줄 단위 분할 (빈 줄 제거)
-    private fun extractBullets(content: String): List<String> {
+    private fun showStatus(message: String) {
+        container.removeAllViews()
+        val tv = TextView(this).apply {
+            text = message
+            textSize = 14f
+            setTextColor(getColor(R.color.gray))
+        }
+        container.addView(tv)
+    }
 
-        if (content.isBlank()) return emptyList()
+    private fun readFallbackGuide(): ToolGuide? {
+        val title = intent.getStringExtra(EXTRA_FALLBACK_TITLE) ?: ""
+        val content = intent.getStringExtra(EXTRA_FALLBACK_CONTENT) ?: ""
+        val imageUrl = intent.getStringExtra(EXTRA_FALLBACK_IMAGE_URL) ?: ""
 
-        val normalized = content
-            .replace(Regex("(?i)<br\\s*/?>"), "\n")
-            .replace(Regex("</p\\s*>", RegexOption.IGNORE_CASE), "\n")
-            .replace(Regex("<[^>]+>"), "")
-            .replace("&nbsp;", " ")
-            .replace("&amp;", "&")
-            .replace("&lt;", "<")
-            .replace("&gt;", ">")
-            .replace("&quot;", "\"")
+        if (title.isBlank() && content.isBlank() && imageUrl.isBlank()) return null
 
-        return normalized.split("\n")
-            .map { it.trim() }
-            .filter { it.isNotEmpty() }
+        return ToolGuide(
+            cntntsNo = intent.getStringExtra(EXTRA_FALLBACK_CNTNTS_NO) ?: "",
+            title = title,
+            content = content,
+            knmcNm = intent.getStringExtra(EXTRA_FALLBACK_KNMC_NM) ?: "",
+            safeacdntSeNm = intent.getStringExtra(EXTRA_FALLBACK_SAFEACDNT_SE_NM) ?: "",
+            imageUrl = imageUrl
+        )
     }
 }
