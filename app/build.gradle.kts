@@ -27,6 +27,7 @@ android {
 
         buildConfigField("String", "DISEASE_API_KEY", "\"${localProperties["DISEASE_API_KEY"] ?: ""}\"")
         buildConfigField("String", "OPENWEATHER_API_KEY", "\"${localProperties["OPENWEATHER_API_KEY"] ?: ""}\"")
+        buildConfigField("String", "NONGSARO_API_KEY", "\"${localProperties["NONGSARO_API_KEY"] ?: ""}\"")
     }
 
     buildTypes {
