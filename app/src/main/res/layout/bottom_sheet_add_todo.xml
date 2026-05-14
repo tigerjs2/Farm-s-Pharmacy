@@ -3,114 +3,128 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:paddingStart="24dp"
-    android:paddingEnd="24dp"
-    android:paddingTop="20dp"
-    android:paddingBottom="30dp"
-    android:background="@android:color/white">
+    android:background="@drawable/bg_bottom_sheet_add_todo"
+    android:paddingStart="28dp"
+    android:paddingEnd="28dp"
+    android:paddingTop="14dp"
+    android:paddingBottom="18dp"
+    android:clipToPadding="false">
 
-    <!-- 상단 -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
+        android:layout_height="36dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="to do"
+            android:textColor="#B4ADB7"
             android:textSize="18sp"
-            android:textColor="@color/gray"
+            android:includeFontPadding="false"
             android:fontFamily="@font/paperlogy_5medium" />
 
         <ImageButton
             android:id="@+id/btnSaveTodo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
             android:background="@android:color/transparent"
             android:src="@drawable/ic_add_todo"
-            android:scaleType="center" />
-
+            android:contentDescription="할 일 저장"
+            android:padding="0dp"
+            android:scaleType="center"
+            android:adjustViewBounds="true"
+            android:tint="#5B5B5B" />
     </LinearLayout>
 
-    <!-- 제목 줄 -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
+        android:layout_height="34dp"
+        android:orientation="horizontal"
+        android:layout_marginTop="16dp"
+        android:gravity="center_vertical">
 
         <TextView
-            android:layout_width="48dp"
-            android:layout_height="wrap_content"
+            android:layout_width="72dp"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
             android:text="제목"
+            android:textColor="#111111"
             android:textSize="20sp"
-            android:textColor="@color/black"
+            android:includeFontPadding="false"
             android:fontFamily="@font/paperlogy_5medium" />
 
         <EditText
             android:id="@+id/etTodoTitle"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="1"
             android:background="@android:color/transparent"
-            android:hint="5-6구역 살균제 살포"
+            android:hint=""
+            android:inputType="text"
+            android:minHeight="0dp"
+            android:paddingTop="0dp"
+            android:paddingBottom="0dp"
+            android:gravity="center_vertical"
+            android:textColor="#707070"
             android:textSize="20sp"
-            android:textColor="@color/black"
-            android:textColorHint="@color/gray"
             android:fontFamily="@font/paperlogy_2extralight"
-            android:padding="0dp"
+            android:includeFontPadding="false"
             android:singleLine="true"
-            android:inputType="text"/>
-
+            android:maxLines="1" />
     </LinearLayout>
 
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:layout_marginStart="48dp"
-        android:background="@color/gray" />
+        android:layout_marginStart="72dp"
+        android:background="#D9D4DC" />
 
-    <!-- 메모 줄 -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="14dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
+        android:layout_height="34dp"
+        android:orientation="horizontal"
+        android:layout_marginTop="8dp"
+        android:gravity="center_vertical">
 
         <TextView
-            android:layout_width="48dp"
-            android:layout_height="wrap_content"
+            android:layout_width="72dp"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
             android:text="메모"
+            android:textColor="#111111"
             android:textSize="20sp"
-            android:textColor="@color/black"
+            android:includeFontPadding="false"
             android:fontFamily="@font/paperlogy_5medium" />
 
         <EditText
             android:id="@+id/etTodoMemo"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="1"
             android:background="@android:color/transparent"
-            android:hint="다코닐"
+            android:hint=""
+            android:inputType="text"
+            android:minHeight="0dp"
+            android:paddingTop="0dp"
+            android:paddingBottom="0dp"
+            android:gravity="center_vertical"
+            android:textColor="#707070"
             android:textSize="20sp"
-            android:textColor="@color/black"
-            android:textColorHint="@color/gray"
             android:fontFamily="@font/paperlogy_2extralight"
-            android:padding="0dp"
+            android:includeFontPadding="false"
             android:singleLine="true"
-            android:inputType="text"/>
-
+            android:maxLines="1" />
     </LinearLayout>
 
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:layout_marginStart="48dp"
-        android:background="@color/gray" />
+        android:layout_marginStart="72dp"
+        android:background="#D9D4DC" />
 
 </LinearLayout>
