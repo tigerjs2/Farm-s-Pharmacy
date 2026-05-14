@@ -305,7 +305,7 @@ class CalendarFragment : Fragment() {
 
         FirebaseFirestore.getInstance()
             .collection("Todos")
-            .whereEqualTo("uid", uid)
+            .whereEqualTo("userId", uid)
             .whereEqualTo("date", dateStr)
             .get()
             .addOnSuccessListener { snapshot ->
@@ -368,7 +368,7 @@ class CalendarFragment : Fragment() {
             val dateStr = selectedDate.toString()
 
             val newItem = TodoItem(
-                uid = uid,
+                userId = uid,
                 date = dateStr,
                 title = title,
                 memo = memo,
