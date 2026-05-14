@@ -35,6 +35,9 @@ import java.util.Date
 import java.util.Locale
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.roundToInt
 
 class PhotoFragment : Fragment() {
 
@@ -42,6 +45,12 @@ class PhotoFragment : Fragment() {
     private lateinit var cameraExecutor: ExecutorService
     private var imageCapture: ImageCapture? = null
     private var cropName: String = ""
+    private lateinit var predictor: DiseasePredictor
+
+    private val guideLeftRatio = 0.19f
+    private val guideTopRatio = 0.22f
+    private val guideRightRatio = 0.81f
+    private val guideBottomRatio = 0.78f
 
     companion object {
         fun newInstance(cropName: String): PhotoFragment {
@@ -81,6 +90,10 @@ class PhotoFragment : Fragment() {
         cropName = arguments?.getString("cropName") ?: ""
         previewView = view.findViewById(R.id.previewView)
         view.findViewById<TextView>(R.id.tvCropTitle).text = "${cropName} 잎 촬영"
+
+        predictor = DiseasePredictor(requireContext()).apply {
+            initModels()
+        }
 
         view.findViewById<ImageButton>(R.id.captureButton).setOnClickListener {
             takePhoto()
@@ -140,11 +153,6 @@ class PhotoFragment : Fragment() {
                 override fun onImageSaved(output: ImageCapture.OutputFileResults) {
                     val savedUri = output.savedUri ?: return
 
-                    // 더미 AI 결과 (TODO: AI 모델 연동 시 교체)
-                    val diagType = "DISEASE"
-                    val label = "노균병"
-                    val confidenceInt = 92
-
                     val progress = ProgressDialog(requireContext()).apply {
                         setMessage("진단 중...")
                         setCancelable(false)
@@ -154,6 +162,21 @@ class PhotoFragment : Fragment() {
                     lifecycleScope.launch {
                         try {
                             val uid = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+
+                            val inferenceResult = withContext(Dispatchers.Default) {
+                                val bitmap = loadBitmapFromUri(savedUri)
+                                val bbox = computeGuideBoxOnBitmap(bitmap.width, bitmap.height)
+                                val cropKey = mapCropNameToKey(cropName)
+                                val result = predictor.predictWithSam(bitmap, bbox, cropKey)
+                                val mapped = mapPrediction(result.className, cropName)
+                                val confidence = (result.confidence * 100.0f).roundToInt()
+                                InferenceResult(
+                                    diagType = mapped.diagType,
+                                    label = mapped.label,
+                                    confidence = confidence,
+                                    sickKeyLookup = mapped.sickKeyLookup
+                                )
+                            }
 
                             // 1. Firebase Storage 업로드
                             val imageUrl = withContext(Dispatchers.IO) {
@@ -167,9 +190,9 @@ class PhotoFragment : Fragment() {
                             }
 
                             // 2. SVC01 호출 → sickKey 획득 (DISEASE일 때만)
-                            val sickKey = if (diagType == "DISEASE") {
+                            val sickKey = if (inferenceResult.diagType == "DISEASE" && inferenceResult.sickKeyLookup.isNotBlank()) {
                                 withContext(Dispatchers.IO) {
-                                    DiseaseApiService.getSickKey(cropName, label)
+                                    DiseaseApiService.getSickKey(cropName, inferenceResult.sickKeyLookup)
                                 }
                             } else null
 
@@ -179,8 +202,8 @@ class PhotoFragment : Fragment() {
                                     val doc = hashMapOf(
                                         "userId"       to uid,
                                         "cropType"     to cropName,
-                                        "diseaseName"  to label,
-                                        "confidence"   to confidenceInt.toDouble() / 100.0,
+                                        "diseaseName"  to inferenceResult.label,
+                                        "confidence"   to inferenceResult.confidence.toDouble() / 100.0,
                                         "imageUrl"     to (imageUrl ?: ""),
                                         "sickKey"      to (sickKey ?: ""),
                                         "timestamp"    to Timestamp.now(),
@@ -203,11 +226,11 @@ class PhotoFragment : Fragment() {
                             val newItem = HistoryItem(
                                 id          = timestamp.toInt(),
                                 imageUri    = savedUri.toString(),
-                                diseaseName = label,
-                                confidence  = confidenceInt,
+                                diseaseName = inferenceResult.label,
+                                confidence  = inferenceResult.confidence,
                                 date        = SimpleDateFormat("yyyy.MM.dd", Locale.getDefault()).format(Date()),
                                 cropName    = cropName,
-                                diagType    = diagType,
+                                diagType    = inferenceResult.diagType,
                                 sickKey     = sickKey ?: ""
                             )
                             val prefs = requireContext().getSharedPreferences("HistoryPrefs", Context.MODE_PRIVATE)
@@ -226,9 +249,9 @@ class PhotoFragment : Fragment() {
                                 putExtra("imageUri",   savedUri.toString())
                                 putExtra("imageUrl",   imageUrl ?: "")
                                 putExtra("cropName",   cropName)
-                                putExtra("diagType",   diagType)
-                                putExtra("label",      label)
-                                putExtra("confidence", confidenceInt)
+                                putExtra("diagType",   inferenceResult.diagType)
+                                putExtra("label",      inferenceResult.label)
+                                putExtra("confidence", inferenceResult.confidence)
                                 putExtra("sickKey",    sickKey ?: "")
                             }
                             startActivity(intent)
@@ -251,5 +274,107 @@ class PhotoFragment : Fragment() {
     override fun onDestroy() {
         super.onDestroy()
         cameraExecutor.shutdown()
+    }
+
+    private data class MappedPrediction(
+        val diagType: String,
+        val label: String,
+        val sickKeyLookup: String,
+    )
+
+    private data class InferenceResult(
+        val diagType: String,
+        val label: String,
+        val confidence: Int,
+        val sickKeyLookup: String,
+    )
+
+    private fun mapCropNameToKey(name: String): String {
+        return when (name.trim()) {
+            "오이" -> "cucumber"
+            "딸기" -> "strawberry"
+            "파프리카" -> "paprika"
+            "포도" -> "grape"
+            "고추" -> "pepper"
+            "토마토" -> "tomato"
+            else -> name.trim().lowercase()
+        }
+    }
+
+    private fun mapPrediction(className: String, inputCropKorean: String): MappedPrediction {
+        val parts = className.split("_")
+        val crop = parts.firstOrNull().orEmpty()
+        val condition = parts.drop(1).joinToString("_")
+        val predictedCropKorean = when (crop) {
+            "cucumber" -> "오이"
+            "strawberry" -> "딸기"
+            "paprika", "paprica" -> "파프리카"
+            "grape" -> "포도"
+            "pepper" -> "고추"
+            "tomato" -> "토마토"
+            else -> ""
+        }
+
+        if (predictedCropKorean.isEmpty() || predictedCropKorean != inputCropKorean) {
+            return MappedPrediction(
+                diagType = "UNKNOWN",
+                label = "",
+                sickKeyLookup = "",
+            )
+        }
+
+        if (condition == "healthy") {
+            return MappedPrediction(
+                diagType = "NORMAL",
+                label = "정상",
+                sickKeyLookup = "",
+            )
+        }
+
+        val diseaseLabel = when (condition) {
+            "downy" -> "노균병"
+            "powdery" -> "흰가루병"
+            "graymold" -> "잿빛곰팡이병"
+            else -> condition
+        }
+
+        return MappedPrediction(
+            diagType = "DISEASE",
+            label = diseaseLabel,
+            sickKeyLookup = diseaseLabel,
+        )
+    }
+
+    private fun computeGuideBoxOnBitmap(bitmapWidth: Int, bitmapHeight: Int): FloatArray {
+        val previewWidth = max(previewView.width, 1)
+        val previewHeight = max(previewView.height, 1)
+
+        val left = previewWidth * guideLeftRatio
+        val top = previewHeight * guideTopRatio
+        val right = previewWidth * guideRightRatio
+        val bottom = previewHeight * guideBottomRatio
+
+        val scaleX = bitmapWidth.toFloat() / previewWidth
+        val scaleY = bitmapHeight.toFloat() / previewHeight
+
+        val x1 = (left * scaleX).coerceIn(0f, bitmapWidth.toFloat())
+        val y1 = (top * scaleY).coerceIn(0f, bitmapHeight.toFloat())
+        val x2 = (right * scaleX).coerceIn(0f, bitmapWidth.toFloat())
+        val y2 = (bottom * scaleY).coerceIn(0f, bitmapHeight.toFloat())
+
+        return floatArrayOf(
+            min(x1, x2),
+            min(y1, y2),
+            max(x1, x2),
+            max(y1, y2),
+        )
+    }
+
+    private fun loadBitmapFromUri(uri: android.net.Uri): android.graphics.Bitmap {
+        val stream = requireContext().contentResolver.openInputStream(uri)
+            ?: throw IllegalStateException("Failed to open image stream")
+        stream.use {
+            return android.graphics.BitmapFactory.decodeStream(it)
+        }
     }
 }

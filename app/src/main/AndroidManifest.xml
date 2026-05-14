@@ -40,6 +40,9 @@
         <activity
             android:name=".ResultActivity"
             android:exported="false" />
+        <activity
+            android:name=".AiInferenceTestActivity"
+            android:exported="true" />
         <!--<activity
             android:name=".PhotoFragment"
             android:exported="false" /> -->
