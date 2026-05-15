@@ -28,5 +28,30 @@
         <item name="android:textSize">34sp</item>
         <item name="android:fontFamily">@font/paperlogy_4regular</item>
     </style>
+    <style name="MapCountColumn">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:gravity">center</item>
+    </style>
+
+    <style name="MapCountNumber">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">#4A4327</item>
+        <item name="android:textSize">24sp</item>
+        <item name="android:fontFamily">@font/paperlogy_7bold</item>
+        <item name="android:includeFontPadding">false</item>
+    </style>
+
+    <style name="MapCountLabel">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">#4A4327</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:fontFamily">@font/paperlogy_6semibold</item>
+        <item name="android:includeFontPadding">false</item>
+    </style>
 
 </resources>
