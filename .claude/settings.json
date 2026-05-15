@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(.\\\\gradlew.bat compileDebugKotlin)",
+      "PowerShell($xml = curl.exe -s \"http://api.nongsaro.go.kr/service/machineSafety/machineSafetyLst?apiKey=20260318EV8ZPAJLMSJUHKUHHB95BQ&pageNo=1&numOfRows=200\"; [xml]$doc = $xml; $doc.response.body.items.item | Group-Object knmcNm | Sort-Object Count -Descending | Format-Table Count, Name -AutoSize)",
+      "PowerShell($xml = curl.exe -s \"http://api.nongsaro.go.kr/service/machineSafety/machineSafetyLst?apiKey=20260318EV8ZPAJLMSJUHKUHHB95BQ&pageNo=1&numOfRows=200\"; [xml]$doc = $xml; $doc.response.body.items.item | ForEach-Object { $_.knmcNm.'#cdata-section' } | Group-Object | Sort-Object Count -Descending | Format-Table Count, Name -AutoSize)",
+      "PowerShell(curl.exe -s \"http://api.nongsaro.go.kr/service/pesticideRegStatus/pesticideRegStatusList?apiKey=20260506OHFRFIILQZP5PGJWVUZIA&sType=applcDbyhs&sText=%EB%85%B8%EA%B7%A0%EB%B3%91&pageNo=1&numOfRows=2\")",
+      "PowerShell(curl.exe -s \"http://api.nongsaro.go.kr/service/pesticideRegStatus/pesticideRegStatusList?apiKey=20260506OHFRFIILQZP5PGJWVUZIA&sText=%EB%85%B8%EA%B7%A0%EB%B3%91&pageNo=1&numOfRows=2\")",
+      "PowerShell(curl.exe -s \"http://api.nongsaro.go.kr/service/pesticideRegStatus/pesticideRegStatusList?apiKey=20260506OHFRFIILQZP5PGJWVUZIA&pageNo=1&numOfRows=2\")",
+      "PowerShell(curl.exe -s \"http://api.nongsaro.go.kr/service/pesticideRegStatus/useGubunList?apiKey=20260506OHFRFIILQZP5PGJWVUZIA\")",
+      "PowerShell(curl.exe -s \"http://api.nongsaro.go.kr/service/pesticideRegStatus/useBaseGubunList?apiKey=20260506OHFRFIILQZP5PGJWVUZIA\")",
+      "PowerShell(curl.exe -s \"http://api.nongsaro.go.kr/service/pesticideRegStatus/pesticideRegStatusList?apiKey=20260506OHFRFIILQZP5PGJWVUZIA&useBaseGubun=Y&sType=cropsNm&sText=%EB%94%B8%EA%B8%B0&pageNo=1&numOfRows=2\")",
+      "PowerShell(curl.exe -s \"http://api.nongsaro.go.kr/service/pesticideRegStatus/pesticideRegStatusList?apiKey=20260506OHFRFIILQZP5PGJWVUZIA&useBaseGubun=Y&pageNo=1&numOfRows=2\")",
+      "PowerShell(curl.exe -s \"http://api.nongsaro.go.kr/service/pesticideRegStatus/pesticideRegStatusList?apiKey=20260318EV8ZPAJLMSJUHKUHHB95BQ&useBaseGubun=Y&sType=cropsNm&sText=%EB%94%B8%EA%B8%B0&pageNo=1&numOfRows=2\")",
+      "PowerShell(curl.exe -s \"http://api.nongsaro.go.kr/service/pesticideRegStatus/pesticideRegStatusList?apiKey=20260506OHFRFIILQZP5PGJWVUZIA&sType=01&sText=%EB%85%B8%EA%B7%A0%EB%B3%91&pageNo=1&numOfRows=2\")",
+      "PowerShell(curl.exe -s \"http://api.nongsaro.go.kr/service/pesticideRegStatus/pesticideRegStatusList?apiKey=20260506OHFRFIILQZP5PGJWVUZIA&sType=1&sText=%EB%94%B8%EA%B8%B0&pageNo=1&numOfRows=2\")",
+      "PowerShell($xml = curl.exe -s \"http://api.nongsaro.go.kr/service/pesticideRegStatus/pesticideRegStatusList?apiKey=20260506OHFRFIILQZP5PGJWVUZIA&useGubun=%EC%82%B4%EA%B7%A0&pageNo=1&numOfRows=10000\"; [xml]$doc = $xml; $items = $doc.response.body.items.item; foreach \\($crop in '오이','딸기','포도','파프리카','고추','토마토'\\) { $c = \\($items | Where-Object { $_.cropsNm.'#cdata-section' -eq $crop }\\).Count; \"$crop : $c\" })",
+      "PowerShell($xml = curl.exe -s \"http://api.nongsaro.go.kr/service/pesticideRegStatus/pesticideRegStatusList?apiKey=20260506OHFRFIILQZP5PGJWVUZIA&pageNo=1&numOfRows=50000\"; [xml]$doc = $xml; $items = $doc.response.body.items.item; \"전체 받음: $\\($items.Count\\)\"; foreach \\($crop in '오이','딸기','포도','파프리카','고추','토마토'\\) { $c = \\($items | Where-Object { $_.cropsNm.'#cdata-section' -eq $crop }\\).Count; \"$crop : $c\" })"
+    ]
+  }
+}

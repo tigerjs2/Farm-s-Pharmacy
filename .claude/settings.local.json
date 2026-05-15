@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(.\\\\gradlew.bat compileDebugKotlin)",
+      "PowerShell(curl.exe -s \"http://api.nongsaro.go.kr/service/machineSafety/machineSafetyLst?apiKey=20260318EV8ZPAJLMSJUHKUHHB95BQ&sText=%EB%B0%A9%EC%A0%9C%EA%B8%B0&pageNo=1&numOfRows=3\")",
+      "PowerShell(curl.exe -s -o $null -w \"%{http_code}\" \"http://nongsaro.go.kr/cms_contents/752/34798_MF_ATTACH_01.jpg\")"
+    ]
+  }
+}
