@@ -16,6 +16,7 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import com.bumptech.glide.Glide
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -82,7 +83,11 @@ class ResultFragment : Fragment() {
         val ivCaptured = view.findViewById<ImageView>(R.id.resultImageView)
         if (imageUri != null) {
             try {
-                ivCaptured.setImageURI(Uri.parse(imageUri))
+                if (imageUri.startsWith("http://") || imageUri.startsWith("https://")) {
+                    Glide.with(this).load(imageUri).centerCrop().into(ivCaptured)
+                } else {
+                    ivCaptured.setImageURI(Uri.parse(imageUri))
+                }
             } catch (e: Exception) {
                 ivCaptured.setBackgroundColor(Color.parseColor("#C8E6C9"))
             }

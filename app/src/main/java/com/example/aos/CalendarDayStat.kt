@@ -1,14 +1,10 @@
 package com.example.aos
 
-import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
+import java.time.Instant
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.time.format.DateTimeParseException
-import java.util.Locale
+import java.time.ZoneId
 
 /**
  * 홈/캘린더 날짜 UI에서 공통으로 쓰는 날짜별 병해 통계.
@@ -26,33 +22,33 @@ data class CalendarDayStat(
 
 object CalendarHistoryStats {
 
+    /**
+     * Firestore의 Diagnoses(현재 사용자) + Storage 동기화 결과를 바탕으로
+     * 날짜별 병해 통계를 만든다. Storage에서 사라진 이미지는 자동 정리된다.
+     *
+     * 거리/작물/병해 종류 구분 없이 진단 1건 = 병해 1건으로 카운트한다.
+     * (지도 페이지의 거리 기반 카운트는 추후 별도 구현)
+     */
     @RequiresApi(Build.VERSION_CODES.O)
-    private val dotFormatter: DateTimeFormatter =
-        DateTimeFormatter.ofPattern("yyyy.MM.dd", Locale.getDefault())
+    suspend fun load(): Map<LocalDate, CalendarDayStat> {
+        val diagnoses = DiagnosisRepository.syncAndLoadForCurrentUser()
+        return computeStats(diagnoses)
+    }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun load(context: Context, gson: Gson = Gson()): Map<LocalDate, CalendarDayStat> {
-        val prefs = context.getSharedPreferences("HistoryPrefs", Context.MODE_PRIVATE)
-        val json = prefs.getString("history_items", "[]") ?: "[]"
-        val type = object : TypeToken<List<HistoryItem>>() {}.type
-
-        val items: List<HistoryItem> = try {
-            gson.fromJson(json, type) ?: emptyList()
-        } catch (e: Exception) {
-            emptyList()
-        }
-
+    fun computeStats(diagnoses: List<Diagnosis>): Map<LocalDate, CalendarDayStat> {
+        val zone = ZoneId.systemDefault()
         val result = linkedMapOf<LocalDate, MutableCalendarDayStat>()
 
-        items.forEach { item ->
-            if (item.diagType != "DISEASE") return@forEach
+        diagnoses.forEach { d ->
+            if (d.diagType != "DISEASE") return@forEach
 
-            val date = parseHistoryDate(item.date) ?: return@forEach
+            val date = Instant.ofEpochMilli(d.timestampMillis).atZone(zone).toLocalDate()
             val stat = result.getOrPut(date) { MutableCalendarDayStat() }
 
             stat.total += 1
-            if (item.isTreated) stat.treated += 1
-            if (item.diseaseName.isNotBlank()) stat.diseaseNames.add(item.diseaseName)
+            if (d.isHandled) stat.treated += 1
+            if (d.diseaseName.isNotBlank()) stat.diseaseNames.add(d.diseaseName)
         }
 
         return result.mapValues { (_, value) ->
@@ -61,22 +57,6 @@ object CalendarHistoryStats {
                 treated = value.treated,
                 diseaseNames = value.diseaseNames.toSet()
             )
-        }
-    }
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun parseHistoryDate(rawDate: String): LocalDate? {
-        val value = rawDate.trim()
-        if (value.isEmpty()) return null
-
-        return try {
-            LocalDate.parse(value, dotFormatter)      // yyyy.MM.dd
-        } catch (_: DateTimeParseException) {
-            try {
-                LocalDate.parse(value)               // yyyy-MM-dd 방어 처리
-            } catch (_: DateTimeParseException) {
-                null
-            }
         }
     }
 

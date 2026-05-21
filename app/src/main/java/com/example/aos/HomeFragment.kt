@@ -93,8 +93,6 @@ class HomeFragment : Fragment() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun setupHomeCalendar(view: View) {
-        dayStat = CalendarHistoryStats.load(requireContext())
-
         val baseWeekStart = startOfWeek(today)
         weekStartDates = (-104..104).map { offset ->
             baseWeekStart.plusWeeks(offset.toLong())
@@ -139,15 +137,20 @@ class HomeFragment : Fragment() {
         }
 
         moveHomeCalendarToSelectedWeek(recyclerView)
+        refreshHomeCalendar()
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun refreshHomeCalendar() {
         if (!::homeCalendarAdapter.isInitialized) return
 
-        dayStat = CalendarHistoryStats.load(requireContext())
-        homeCalendarAdapter.updateStats(dayStat)
-        homeCalendarAdapter.setSelectedDate(selectedDate)
+        lifecycleScope.launch {
+            val stats = CalendarHistoryStats.load()
+            if (!isAdded || !::homeCalendarAdapter.isInitialized) return@launch
+            dayStat = stats
+            homeCalendarAdapter.updateStats(dayStat)
+            homeCalendarAdapter.setSelectedDate(selectedDate)
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)

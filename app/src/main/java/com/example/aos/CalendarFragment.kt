@@ -11,6 +11,8 @@ import android.widget.FrameLayout
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.aos.databinding.FragmentCalendarBinding
@@ -62,11 +64,11 @@ class CalendarFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        loadStats()
         setupCalendar()
         updateMonthTitle()
         updateDiseaseCard(selectedDate)
         setupTodoList()
+        loadStats()
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -74,20 +76,25 @@ class CalendarFragment : Fragment() {
         super.onResume()
 
         if (_binding != null) {
-            loadStats()
-            if (::calendarAdapter.isInitialized) {
-                calendarAdapter.updateStats(dayStat)
-                calendarAdapter.setSelectedDate(selectedDate)
-            }
             updateMonthTitle()
             updateDiseaseCard(selectedDate)
             loadTodos()
+            loadStats()
         }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun loadStats() {
-        dayStat = CalendarHistoryStats.load(requireContext(), gson)
+        viewLifecycleOwner.lifecycleScope.launch {
+            val stats = CalendarHistoryStats.load()
+            if (_binding == null) return@launch
+            dayStat = stats
+            if (::calendarAdapter.isInitialized) {
+                calendarAdapter.updateStats(dayStat)
+                calendarAdapter.setSelectedDate(selectedDate)
+            }
+            updateDiseaseCard(selectedDate)
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)

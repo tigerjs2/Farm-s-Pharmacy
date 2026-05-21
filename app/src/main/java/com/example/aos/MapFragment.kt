@@ -12,9 +12,13 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.Query
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.sin
+import kotlin.math.sqrt
 
 class MapFragment : Fragment() {
 
@@ -41,7 +45,23 @@ class MapFragment : Fragment() {
      * true: 샘플 데이터로 테스트
      * false: Firestore Diagnoses 데이터로 집계
      */
-    private val useSampleData = true
+    private val useSampleData = false
+
+    /** 같은 작물+병해 진단이 1km 이내에 모이면 1건으로만 카운트한다. */
+    private val dedupRadiusMeters = 1000.0
+
+    /**
+     * 지도 토글에서 노출할 작물-병해 매핑.
+     * HistoryActivity.CROP_DISEASES에는 "기타"가 포함되지만 지도에서는 제외한다.
+     */
+    private val mapCropDiseases = mapOf(
+        "오이"    to listOf("노균병", "흰가루병"),
+        "고추"    to listOf("흰가루병"),
+        "딸기"    to listOf("흰가루병"),
+        "포도"    to listOf("노균병"),
+        "파프리카" to listOf("흰가루병"),
+        "토마토"  to listOf("잿빛곰팡이병", "흰가루병")
+    )
 
     private var selectedCrop = "전체"
     private var selectedDisease = "전체"
@@ -160,7 +180,7 @@ class MapFragment : Fragment() {
     private fun diseasesForCrop(crop: String): List<String> {
         if (crop == "전체") return listOf("전체")
 
-        val diseases = HistoryActivity.CROP_DISEASES[crop] ?: emptyList()
+        val diseases = mapCropDiseases[crop] ?: emptyList()
         return listOf("전체") + diseases
     }
 
@@ -173,16 +193,8 @@ class MapFragment : Fragment() {
     }
 
     private fun loadStatsFromFirestore() {
-        val uid = FirebaseAuth.getInstance().currentUser?.uid
-
-        if (uid.isNullOrBlank()) {
-            applyStats(emptyStats())
-            return
-        }
-
         var query: Query = FirebaseFirestore.getInstance()
             .collection("Diagnoses")
-            .whereEqualTo("userId", uid)
 
         if (selectedCrop != "전체") {
             query = query.whereEqualTo("cropType", selectedCrop)
@@ -194,22 +206,62 @@ class MapFragment : Fragment() {
 
         query.get()
             .addOnSuccessListener { snapshot ->
-                val stats = emptyStats()
-
-                snapshot.documents.forEach { doc ->
-                    val addressDo = doc.getString("addressDo") ?: ""
-                    val region = addressToRegion(addressDo)
-
-                    if (region != null) {
-                        stats[region] = (stats[region] ?: 0) + 1
-                    }
-                }
-
-                applyStats(stats)
+                applyStats(aggregateWithDedup(snapshot.documents))
             }
             .addOnFailureListener {
                 applyStats(emptyStats())
             }
+    }
+
+    /**
+     * (cropType, diseaseName) 그룹별로 1km 이내 중복 진단을 제거한 뒤
+     * addressDo → Region으로 카운트한다.
+     */
+    private fun aggregateWithDedup(
+        docs: List<com.google.firebase.firestore.DocumentSnapshot>
+    ): Map<Region, Int> {
+        data class Entry(val region: Region, val location: GeoPoint?)
+
+        val groups = mutableMapOf<Pair<String, String>, MutableList<Entry>>()
+
+        docs.forEach { doc ->
+            val crop = doc.getString("cropType") ?: return@forEach
+            val disease = doc.getString("diseaseName") ?: return@forEach
+            val region = addressToRegion(doc.getString("addressDo") ?: "") ?: return@forEach
+            val location = doc.getGeoPoint("location")
+
+            groups.getOrPut(crop to disease) { mutableListOf() }
+                .add(Entry(region, location))
+        }
+
+        val stats = emptyStats()
+
+        groups.values.forEach { entries ->
+            val kept = mutableListOf<GeoPoint>()
+            entries.forEach { entry ->
+                val loc = entry.location
+                val isDuplicate = loc != null && kept.any { existing ->
+                    haversineMeters(existing, loc) < dedupRadiusMeters
+                }
+                if (!isDuplicate) {
+                    if (loc != null) kept.add(loc)
+                    stats[entry.region] = (stats[entry.region] ?: 0) + 1
+                }
+            }
+        }
+
+        return stats
+    }
+
+    private fun haversineMeters(a: GeoPoint, b: GeoPoint): Double {
+        val earthRadius = 6371000.0
+        val lat1 = Math.toRadians(a.latitude)
+        val lat2 = Math.toRadians(b.latitude)
+        val dLat = lat2 - lat1
+        val dLon = Math.toRadians(b.longitude - a.longitude)
+        val h = sin(dLat / 2).let { it * it } +
+                cos(lat1) * cos(lat2) * sin(dLon / 2).let { it * it }
+        return 2 * earthRadius * atan2(sqrt(h), sqrt(1 - h))
     }
 
     private fun applyStats(rawStats: Map<Region, Int>) {
