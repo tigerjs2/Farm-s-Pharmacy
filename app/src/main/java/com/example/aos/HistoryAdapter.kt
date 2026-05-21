@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 
 class HistoryAdapter(
     private var historyItems: List<HistoryItem>,
@@ -68,11 +69,20 @@ class HistoryAdapter(
     class ImageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val thumbnailImageView: ImageView = itemView.findViewById(R.id.thumbnailImageView)
         fun bind(item: HistoryItem, onItemClick: (HistoryItem) -> Unit) {
-            if (item.imageUri != null) {
-                try {
-                    thumbnailImageView.setImageURI(Uri.parse(item.imageUri))
-                } catch (e: Exception) {
-                    thumbnailImageView.setImageResource(android.R.drawable.ic_menu_gallery)
+            val uri = item.imageUri
+            if (!uri.isNullOrBlank()) {
+                if (uri.startsWith("http://") || uri.startsWith("https://")) {
+                    Glide.with(thumbnailImageView.context)
+                        .load(uri)
+                        .placeholder(android.R.drawable.ic_menu_gallery)
+                        .centerCrop()
+                        .into(thumbnailImageView)
+                } else {
+                    try {
+                        thumbnailImageView.setImageURI(Uri.parse(uri))
+                    } catch (e: Exception) {
+                        thumbnailImageView.setImageResource(android.R.drawable.ic_menu_gallery)
+                    }
                 }
             } else if (item.imageResId != 0) {
                 thumbnailImageView.setImageResource(item.imageResId)

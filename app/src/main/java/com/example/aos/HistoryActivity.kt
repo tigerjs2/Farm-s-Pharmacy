@@ -3,14 +3,15 @@ package com.example.aos
 import android.os.Bundle
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.aos.DiagnosisRepository.toHistoryItem
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import android.view.View
 import android.widget.RelativeLayout
 import android.content.Intent
+import kotlinx.coroutines.launch
 
 class HistoryActivity : AppCompatActivity() {
 
@@ -57,9 +58,6 @@ class HistoryActivity : AppCompatActivity() {
     private var isNewestFirst = true
     private val filterState = mutableMapOf<String, Boolean>()
 
-    private val prefs by lazy { getSharedPreferences("HistoryPrefs", MODE_PRIVATE) }
-    private val gson = Gson()
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_history)
@@ -70,24 +68,20 @@ class HistoryActivity : AppCompatActivity() {
         setupFilterChips()
         setupRecyclerView()
         setupSortButton()
-
-        allItems = loadItemsByCrop(cropName)
-        applyFilters()
     }
 
-    private fun loadItemsByCrop(cropName: String): List<HistoryItem> {
-        val json = prefs.getString("history_items", null) ?: return emptyList()
-        if (!json.trimStart().startsWith("[")) {
-            prefs.edit().remove("history_items").apply()
-            return emptyList()
-        }
-        return try {
-            val type = object : TypeToken<List<HistoryItem>>() {}.type
-            val all: List<HistoryItem> = gson.fromJson(json, type)
-            all.filter { it.cropName == cropName }
-        } catch (e: Exception) {
-            prefs.edit().remove("history_items").apply()
-            emptyList()
+    override fun onResume() {
+        super.onResume()
+        loadItemsByCrop(cropName)
+    }
+
+    private fun loadItemsByCrop(cropName: String) {
+        lifecycleScope.launch {
+            val diagnoses = DiagnosisRepository.syncAndLoadForCurrentUser()
+            allItems = diagnoses
+                .filter { it.cropType == cropName }
+                .map { it.toHistoryItem() }
+            applyFilters()
         }
     }
 

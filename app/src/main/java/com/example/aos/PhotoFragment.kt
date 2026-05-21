@@ -179,10 +179,11 @@ class PhotoFragment : Fragment() {
                             }
 
                             // 1. Firebase Storage 업로드
+                            val storagePath = "diagnoses/$uid/${timestamp}.jpg"
                             val imageUrl = withContext(Dispatchers.IO) {
                                 val storageRef = FirebaseStorage.getInstance()
                                     .reference
-                                    .child("diagnoses/$uid/${timestamp}.jpg")
+                                    .child(storagePath)
                                 val stream = requireContext().contentResolver.openInputStream(savedUri)
                                     ?: return@withContext null
                                 stream.use { storageRef.putStream(it).await() }
@@ -197,22 +198,25 @@ class PhotoFragment : Fragment() {
                             } else null
 
                             // 3. Firestore Diagnoses 저장
+                            val randomLoc = RandomLocation.next()
                             withContext(Dispatchers.IO) {
                                 if (uid.isNotEmpty()) {
                                     val doc = hashMapOf(
                                         "userId"       to uid,
                                         "cropType"     to cropName,
                                         "diseaseName"  to inferenceResult.label,
+                                        "diagType"     to inferenceResult.diagType,
                                         "confidence"   to inferenceResult.confidence.toDouble() / 100.0,
                                         "imageUrl"     to (imageUrl ?: ""),
+                                        "storagePath"  to storagePath,
                                         "sickKey"      to (sickKey ?: ""),
                                         "timestamp"    to Timestamp.now(),
                                         "isCounted"    to false,
                                         "isHandled"    to false,
                                         "memoTitle"    to "",
                                         "memoContent"  to "",
-                                        "location"     to null,
-                                        "addressDo"    to null,
+                                        "location"     to randomLoc.geoPoint,
+                                        "addressDo"    to randomLoc.addressDo,
                                         "addressSi"    to null
                                     )
                                     FirebaseFirestore.getInstance()
