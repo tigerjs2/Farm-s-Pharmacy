@@ -73,8 +73,10 @@ class SignUpActivity : AppCompatActivity() {
                             .set(user)
                             .addOnSuccessListener {
                                 Toast.makeText(this, "회원가입 성공", Toast.LENGTH_SHORT).show()
-                                startActivity(Intent(this, MainActivity::class.java))
-                                finish()
+
+                                val intent = Intent(this, GuideActivity::class.java)
+                                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                startActivity(intent)
                             }
                             .addOnFailureListener { e ->
                                 Toast.makeText(this, "DB 저장 실패: ${e.message}", Toast.LENGTH_SHORT).show()

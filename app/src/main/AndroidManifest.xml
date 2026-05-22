@@ -17,6 +17,9 @@
         android:theme="@style/Theme.AOS"
         android:usesCleartextTraffic="true">
         <activity
+            android:name=".GuideActivity"
+            android:exported="false" />
+        <activity
             android:name=".CropPesticideActivity"
             android:exported="false" />
         <activity
@@ -43,9 +46,11 @@
         <activity
             android:name=".AiInferenceTestActivity"
             android:exported="true" />
-        <!--<activity
+        <!--
+<activity
             android:name=".PhotoFragment"
-            android:exported="false" /> -->
+            android:exported="false" />
+        -->
         <activity android:name=".DiseasePesticideActivity" />
         <activity
             android:name=".MyInfoActivity"
@@ -56,7 +61,6 @@
         <activity
             android:name=".LoginActivity"
             android:exported="true">
-
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
