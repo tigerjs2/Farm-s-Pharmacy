@@ -77,6 +77,8 @@ class HomeFragment : Fragment() {
         loadSelectedDateTodo(view)
         setupTodaySafety(view)
 
+        loadMapAlert(view)
+
         view.findViewById<ImageView>(R.id.ivProfile).setOnClickListener {
             startActivity(Intent(requireContext(), ProfileActivity::class.java))
         }
@@ -89,6 +91,7 @@ class HomeFragment : Fragment() {
         refreshHomeCalendar()
         loadSelectedDateTodo(requireView())
         loadTodaySafety(requireView())
+        loadMapAlert(requireView())
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -371,6 +374,71 @@ class HomeFragment : Fragment() {
                 renderTodaySafety(requestedRoot, guide)
             }
         }
+    }
+    private fun loadMapAlert(view: View) {
+        renderMapAlertLoading(view)
+
+        val requestedRoot = view
+
+        MapDiseaseStatsRepository.loadSummary(
+            crop = "전체",
+            disease = "전체",
+            onSuccess = success@{ summary ->
+                if (!isAdded || this@HomeFragment.view !== requestedRoot) return@success
+                renderMapAlert(requestedRoot, summary)
+            },
+            onFailure = failure@{
+                if (!isAdded || this@HomeFragment.view !== requestedRoot) return@failure
+                renderMapAlertError(requestedRoot)
+            }
+        )
+    }
+
+    private fun renderMapAlertLoading(view: View) {
+        view.findViewById<TextView>(R.id.tvHomeAlertTitle).text =
+            "전국 병해 현황 불러오는 중..."
+
+        view.findViewById<TextView>(R.id.tvHomeAlertDamage2).apply {
+            text = ""
+            visibility = View.GONE
+        }
+
+        view.findViewById<TextView>(R.id.tvHomeDiseaseCount).text = "--건"
+    }
+
+    private fun renderMapAlert(
+        view: View,
+        summary: MapDiseaseStatsRepository.Summary
+    ) {
+        val firstDamage = summary.damageLines.getOrNull(0) ?: "질병 피해 없습니다!"
+        val secondDamage = summary.damageLines.getOrNull(1)
+
+        view.findViewById<TextView>(R.id.tvHomeAlertTitle).text = firstDamage
+
+        view.findViewById<TextView>(R.id.tvHomeAlertDamage2).apply {
+            if (secondDamage.isNullOrBlank()) {
+                text = ""
+                visibility = View.GONE
+            } else {
+                text = secondDamage
+                visibility = View.VISIBLE
+            }
+        }
+
+        view.findViewById<TextView>(R.id.tvHomeDiseaseCount).text =
+            "${summary.total}건"
+    }
+
+    private fun renderMapAlertError(view: View) {
+        view.findViewById<TextView>(R.id.tvHomeAlertTitle).text =
+            "병해 현황을 불러오지 못했어요"
+
+        view.findViewById<TextView>(R.id.tvHomeAlertDamage2).apply {
+            text = "잠시 후 다시 시도해주세요."
+            visibility = View.VISIBLE
+        }
+
+        view.findViewById<TextView>(R.id.tvHomeDiseaseCount).text = "--건"
     }
 
     private fun renderTodaySafetyLoading(view: View) {
