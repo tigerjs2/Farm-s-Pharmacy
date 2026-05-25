@@ -16,6 +16,9 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.storage
+import com.google.firebase.firestore.FieldValue
+import com.bumptech.glide.signature.ObjectKey
+import com.google.firebase.firestore.SetOptions
 
 class MyInfoActivity : AppCompatActivity() {
 
@@ -37,7 +40,13 @@ class MyInfoActivity : AppCompatActivity() {
                 .addOnSuccessListener {
                     storageRef.downloadUrl.addOnSuccessListener { downloadUri ->
                         Firebase.firestore.collection("Users").document(uid)
-                            .update("profileImageUrl", downloadUri.toString())
+                            .set(
+                                mapOf(
+                                    "profileImageUrl" to downloadUri.toString(),
+                                    "profileImageUpdatedAt" to FieldValue.serverTimestamp()
+                                ),
+                                SetOptions.merge()
+                            )
                             .addOnSuccessListener {
                                 Toast.makeText(this, "프로필 사진이 변경되었습니다", Toast.LENGTH_SHORT).show()
                             }
@@ -67,8 +76,21 @@ class MyInfoActivity : AppCompatActivity() {
                 etName.setText(document.getString("name") ?: "")
 
                 val imageUrl = document.getString("profileImageUrl")
-                if (!imageUrl.isNullOrEmpty()) {
-                    Glide.with(this).load(imageUrl).circleCrop().into(ivProfileImage)
+                val updatedAt = document.getTimestamp("profileImageUpdatedAt")
+                    ?.toDate()
+                    ?.time
+                    ?: 0L
+
+                if (!imageUrl.isNullOrBlank()) {
+                    Glide.with(this)
+                        .load(imageUrl)
+                        .circleCrop()
+                        .placeholder(R.drawable.ic_profile)
+                        .error(R.drawable.ic_profile)
+                        .signature(ObjectKey("${imageUrl}_${updatedAt}"))
+                        .into(ivProfileImage)
+                } else {
+                    ivProfileImage.setImageResource(R.drawable.ic_profile)
                 }
             }
 

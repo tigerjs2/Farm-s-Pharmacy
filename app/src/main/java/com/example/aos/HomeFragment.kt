@@ -27,6 +27,7 @@ import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.time.LocalDate
+import com.bumptech.glide.signature.ObjectKey
 
 class HomeFragment : Fragment() {
 
@@ -528,18 +529,43 @@ class HomeFragment : Fragment() {
 
     private fun loadUserName(view: View) {
         val uid = mAuth.currentUser?.uid ?: return
+
         val tvGreeting = view.findViewById<TextView>(R.id.tvGreeting)
+        val ivProfile = view.findViewById<ImageView>(R.id.ivProfile)
 
         Firebase.firestore
             .collection("Users")
             .document(uid)
             .get()
             .addOnSuccessListener { document ->
+                if (!isAdded || this@HomeFragment.view !== view) return@addOnSuccessListener
+
                 val name = document.getString("name") ?: "농부"
                 tvGreeting.text = "Hello, ${name}님!"
+
+                val imageUrl = document.getString("profileImageUrl")
+                val updatedAt = document.getTimestamp("profileImageUpdatedAt")
+                    ?.toDate()
+                    ?.time
+                    ?: 0L
+
+                if (!imageUrl.isNullOrBlank()) {
+                    Glide.with(this@HomeFragment)
+                        .load(imageUrl)
+                        .circleCrop()
+                        .placeholder(R.drawable.ic_profile)
+                        .error(R.drawable.ic_profile)
+                        .signature(ObjectKey("${imageUrl}_${updatedAt}"))
+                        .into(ivProfile)
+                } else {
+                    ivProfile.setImageResource(R.drawable.ic_profile)
+                }
             }
             .addOnFailureListener {
+                if (!isAdded || this@HomeFragment.view !== view) return@addOnFailureListener
+
                 tvGreeting.text = "안녕하세요!"
+                ivProfile.setImageResource(R.drawable.ic_profile)
             }
     }
 
