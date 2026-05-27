@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:paddingTop="24dp"
-    android:paddingBottom="64dp"
+    android:paddingBottom="96dp"
     android:clipToPadding="false"
     android:background="@color/background">
 
@@ -30,13 +30,13 @@
                 android:text="안녕하세요, 오이!"
                 android:textSize="36sp"
                 android:fontFamily="@font/paperlogy_6semibold"
-                android:textColor="@color/black"/>
+                android:textColor="@color/black" />
 
             <ImageView
                 android:id="@+id/ivProfile"
                 android:layout_width="73dp"
                 android:layout_height="73dp"
-                android:src="@drawable/ic_profile"/>
+                android:src="@drawable/ic_profile" />
 
         </LinearLayout>
 
@@ -63,19 +63,21 @@
             android:fontFamily="@font/paperlogy_4regular"
             android:textColor="@color/black"
             android:paddingHorizontal="20dp"
-            android:paddingBottom="12dp"/>
+            android:paddingBottom="12dp" />
 
         <!-- 날씨 + 알림 카드 -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
+            android:baselineAligned="false"
             android:paddingHorizontal="16dp"
             android:paddingBottom="12dp">
 
+            <!-- 날씨 카드 -->
             <LinearLayout
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="188dp"
                 android:layout_weight="1"
                 android:orientation="vertical"
                 android:background="@drawable/card_white"
@@ -88,20 +90,21 @@
                     android:text="현재 날씨"
                     android:textSize="15sp"
                     android:fontFamily="@font/paperlogy_1thin"
-                    android:textColor="@color/gray"/>
+                    android:textColor="@color/gray" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
                     android:orientation="horizontal"
                     android:gravity="center_vertical"
-                    android:paddingTop="18dp">
+                    android:paddingTop="10dp">
 
                     <ImageView
                         android:id="@+id/ivWeatherIcon"
                         android:layout_width="51dp"
                         android:layout_height="51dp"
-                        android:src="@drawable/ic_rainy"/>
+                        android:src="@drawable/ic_rainy" />
 
                     <TextView
                         android:id="@+id/tvTemperature"
@@ -111,46 +114,89 @@
                         android:textSize="45sp"
                         android:fontFamily="@font/paperlogy_3light"
                         android:textColor="@color/black"
-                        android:paddingStart="8dp"/>
+                        android:paddingStart="8dp"
+                        android:includeFontPadding="false" />
                 </LinearLayout>
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:paddingTop="18dp">
+                    android:paddingTop="8dp">
 
-                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
-                        android:layout_weight="1" android:orientation="vertical" android:gravity="center">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="강수량" android:textSize="15sp" android:textColor="@color/black"
-                            android:fontFamily="@font/paperlogy_1thin"/>
-                        <TextView android:id="@+id/tvRain"
-                            android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="--mm" android:textSize="12sp" android:textColor="@color/black"
-                            android:fontFamily="@font/paperlogy_3light"/>
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="강수량"
+                            android:textSize="15sp"
+                            android:textColor="@color/black"
+                            android:fontFamily="@font/paperlogy_1thin" />
+
+                        <TextView
+                            android:id="@+id/tvRain"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="--mm"
+                            android:textSize="12sp"
+                            android:textColor="@color/black"
+                            android:fontFamily="@font/paperlogy_3light" />
                     </LinearLayout>
 
-                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
-                        android:layout_weight="1" android:orientation="vertical" android:gravity="center">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="습도" android:textSize="15sp" android:textColor="@color/black"
-                            android:fontFamily="@font/paperlogy_1thin"/>
-                        <TextView android:id="@+id/tvHumidity"
-                            android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="--%"  android:textSize="12sp" android:textColor="@color/black"
-                            android:fontFamily="@font/paperlogy_3light"/>
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="습도"
+                            android:textSize="15sp"
+                            android:textColor="@color/black"
+                            android:fontFamily="@font/paperlogy_1thin" />
+
+                        <TextView
+                            android:id="@+id/tvHumidity"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="--%"
+                            android:textSize="12sp"
+                            android:textColor="@color/black"
+                            android:fontFamily="@font/paperlogy_3light" />
                     </LinearLayout>
 
-                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
-                        android:layout_weight="1" android:orientation="vertical" android:gravity="center">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="풍속" android:textSize="15sp" android:textColor="@color/black"
-                            android:fontFamily="@font/paperlogy_1thin"/>
-                        <TextView android:id="@+id/tvWind"
-                            android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="--m/s" android:textSize="12sp" android:textColor="@color/black"
-                            android:fontFamily="@font/paperlogy_3light"/>
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="풍속"
+                            android:textSize="15sp"
+                            android:textColor="@color/black"
+                            android:fontFamily="@font/paperlogy_1thin" />
+
+                        <TextView
+                            android:id="@+id/tvWind"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="--m/s"
+                            android:textSize="12sp"
+                            android:textColor="@color/black"
+                            android:fontFamily="@font/paperlogy_3light" />
                     </LinearLayout>
 
                 </LinearLayout>
@@ -159,12 +205,12 @@
             <!-- 알림 카드 -->
             <LinearLayout
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="188dp"
                 android:layout_weight="1"
                 android:orientation="vertical"
                 android:background="@drawable/card_white"
                 android:padding="16dp"
-                android:layout_marginStart="15dp">
+                android:layout_marginStart="8dp">
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -172,43 +218,76 @@
                     android:text="알림"
                     android:textSize="15sp"
                     android:fontFamily="@font/paperlogy_1thin"
-                    android:textColor="@color/gray"/>
+                    android:textColor="@color/gray" />
 
-                <TextView
+                <!-- 주요 피해 박스 -->
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="노균병 발병 주의..."
-                    android:textSize="15sp"
-                    android:fontFamily="@font/paperlogy_6semibold"
-                    android:textColor="@color/black"
+                    android:minHeight="50dp"
+                    android:orientation="vertical"
                     android:background="@drawable/card_gray"
-                    android:padding="8dp"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="8dp"
                     android:gravity="center"
-                    android:layout_marginTop="8dp"/>
+                    android:layout_marginTop="8dp">
+
+                    <TextView
+                        android:id="@+id/tvHomeAlertTitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="전국 병해 현황 불러오는 중..."
+                        android:textSize="10sp"
+                        android:fontFamily="@font/paperlogy_6semibold"
+                        android:textColor="@color/black"
+                        android:gravity="center"
+                        android:maxLines="2"
+                        android:ellipsize="end" />
+
+                    <TextView
+                        android:id="@+id/tvHomeAlertDamage2"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text=""
+                        android:textSize="11sp"
+                        android:fontFamily="@font/paperlogy_3light"
+                        android:textColor="@color/black"
+                        android:gravity="center"
+                        android:layout_marginTop="3dp"
+                        android:maxLines="1"
+                        android:ellipsize="end"
+                        android:visibility="gone" />
+
+                </LinearLayout>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="질병 발생"
+                    android:text="전국 병해 발생"
                     android:textSize="15sp"
                     android:fontFamily="@font/paperlogy_1thin"
                     android:textColor="@color/black"
-                    android:paddingTop="12dp"/>
+                    android:paddingTop="10dp" />
 
                 <TextView
+                    android:id="@+id/tvHomeDiseaseCount"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="3건"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:text="--건"
                     android:textSize="46sp"
                     android:fontFamily="@font/paperlogy_5medium"
                     android:textColor="@color/black"
-                    android:gravity="end"
-                    android:paddingEnd="8dp"/>
+                    android:gravity="end|center_vertical"
+                    android:paddingEnd="8dp"
+                    android:includeFontPadding="false" />
 
             </LinearLayout>
         </LinearLayout>
 
-        <!-- 선택 날짜의 미완료 To do 1개: 캘린더 페이지 item_todo.xml 모양 그대로 -->
+        <!-- 선택 날짜의 미완료 To do 1개 -->
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="98dp"
@@ -278,8 +357,8 @@
 
                         <ImageButton
                             android:id="@+id/btnHomeTodoCheck"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
+                            android:layout_width="77dp"
+                            android:layout_height="77dp"
                             android:background="@android:color/transparent"
                             android:src="@drawable/ic_check_outline"
                             android:scaleType="center"
@@ -309,6 +388,14 @@
                 android:textSize="20sp"
                 android:fontFamily="@font/paperlogy_4regular"
                 android:textColor="@color/black" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="더보기"
+                android:textSize="13sp"
+                android:fontFamily="@font/paperlogy_1thin"
+                android:textColor="@color/gray" />
 
         </LinearLayout>
 

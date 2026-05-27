@@ -428,7 +428,7 @@ class MapFragment : Fragment() {
                 TextView(requireContext()).apply {
                     text = item
                     textSize = 19f
-                    setTextColor(Color.BLACK)
+                    setTextColor(Color.parseColor("#FFFFFF"))
                     typeface = resources.getFont(R.font.paperlogy_4regular)
                     layoutParams = LinearLayout.LayoutParams(
                         0,
@@ -442,7 +442,7 @@ class MapFragment : Fragment() {
                 TextView(requireContext()).apply {
                     text = if (item == selected) "✓" else ""
                     textSize = 25f
-                    setTextColor(Color.BLACK)
+                    setTextColor(Color.parseColor("#FFFFFF"))
                     typeface = resources.getFont(R.font.paperlogy_4regular)
                 }
             )

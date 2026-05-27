@@ -2,15 +2,20 @@ package com.example.aos
 
 import android.content.Intent
 import android.os.Bundle
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import com.google.firebase.auth.FirebaseAuth
+import com.bumptech.glide.Glide
+import com.bumptech.glide.signature.ObjectKey
 import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.firestore
 
 class ProfileActivity : AppCompatActivity() {
 
     private lateinit var mAuth: FirebaseAuth
+    private lateinit var tvProfileName: TextView
+    private lateinit var ivProfileImage: ImageView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -18,7 +23,10 @@ class ProfileActivity : AppCompatActivity() {
 
         mAuth = FirebaseAuth.getInstance()
 
-        loadUserName()
+        tvProfileName = findViewById(R.id.tvProfileName)
+        ivProfileImage = findViewById(R.id.ivProfileImage)
+
+        loadUserProfile()
 
         findViewById<TextView>(R.id.tvMyInfo).setOnClickListener {
             startActivity(Intent(this, MyInfoActivity::class.java))
@@ -33,18 +41,41 @@ class ProfileActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        loadUserName()
+        loadUserProfile()
     }
 
-    private fun loadUserName() {
+    private fun loadUserProfile() {
         val uid = mAuth.currentUser?.uid ?: return
+
         Firebase.firestore
             .collection("Users")
             .document(uid)
             .get()
             .addOnSuccessListener { document ->
                 val name = document.getString("name") ?: ""
-                findViewById<TextView>(R.id.tvProfileName).text = name
+                tvProfileName.text = name
+
+                val imageUrl = document.getString("profileImageUrl")
+                val updatedAt = document.getTimestamp("profileImageUpdatedAt")
+                    ?.toDate()
+                    ?.time
+                    ?: 0L
+
+                if (!imageUrl.isNullOrBlank()) {
+                    Glide.with(this)
+                        .load(imageUrl)
+                        .circleCrop()
+                        .placeholder(R.drawable.ic_profile)
+                        .error(R.drawable.ic_profile)
+                        .signature(ObjectKey("${imageUrl}_${updatedAt}"))
+                        .into(ivProfileImage)
+                } else {
+                    ivProfileImage.setImageResource(R.drawable.ic_profile)
+                }
+            }
+            .addOnFailureListener {
+                tvProfileName.text = ""
+                ivProfileImage.setImageResource(R.drawable.ic_profile)
             }
     }
 }
