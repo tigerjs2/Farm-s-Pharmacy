@@ -53,6 +53,9 @@ class PhotoFragment : Fragment() {
     private val guideBottomRatio = 0.78f
 
     companion object {
+        // true: 백엔드 서버(/predict) 사용 / false: 온디바이스 ExecuTorch 사용
+        const val USE_SERVER_PREDICTOR = true
+
         fun newInstance(cropName: String): PhotoFragment {
             val fragment = PhotoFragment()
             val args = Bundle()
@@ -91,8 +94,9 @@ class PhotoFragment : Fragment() {
         previewView = view.findViewById(R.id.previewView)
         view.findViewById<TextView>(R.id.tvCropTitle).text = "${cropName} 잎 촬영"
 
-        predictor = DiseasePredictor(requireContext()).apply {
-            initModels()
+        predictor = DiseasePredictor(requireContext())
+        if (!USE_SERVER_PREDICTOR) {
+            predictor.initModels()
         }
 
         view.findViewById<ImageButton>(R.id.captureButton).setOnClickListener {
@@ -163,19 +167,23 @@ class PhotoFragment : Fragment() {
                         try {
                             val uid = FirebaseAuth.getInstance().currentUser?.uid ?: ""
 
-                            val inferenceResult = withContext(Dispatchers.Default) {
-                                val bitmap = loadBitmapFromUri(savedUri)
-                                val bbox = computeGuideBoxOnBitmap(bitmap.width, bitmap.height)
-                                val cropKey = mapCropNameToKey(cropName)
-                                val result = predictor.predictWithSam(bitmap, bbox, cropKey)
-                                val mapped = mapPrediction(result.className, cropName)
-                                val confidence = (result.confidence * 100.0f).roundToInt()
-                                InferenceResult(
-                                    diagType = mapped.diagType,
-                                    label = mapped.label,
-                                    confidence = confidence,
-                                    sickKeyLookup = mapped.sickKeyLookup
-                                )
+                            val inferenceResult = if (USE_SERVER_PREDICTOR) {
+                                runServerInference(savedUri)
+                            } else {
+                                withContext(Dispatchers.Default) {
+                                    val bitmap = loadBitmapFromUri(savedUri)
+                                    val bbox = computeGuideBoxOnBitmap(bitmap.width, bitmap.height)
+                                    val cropKey = mapCropNameToKey(cropName)
+                                    val result = predictor.predictWithSam(bitmap, bbox, cropKey)
+                                    val mapped = mapPrediction(result.className, cropName)
+                                    val confidence = (result.confidence * 100.0f).roundToInt()
+                                    InferenceResult(
+                                        diagType = mapped.diagType,
+                                        label = mapped.label,
+                                        confidence = confidence,
+                                        sickKeyLookup = mapped.sickKeyLookup
+                                    )
+                                }
                             }
 
                             // 1. Firebase Storage 업로드
@@ -273,6 +281,64 @@ class PhotoFragment : Fragment() {
                 }
             }
         )
+    }
+
+    private suspend fun runServerInference(savedUri: android.net.Uri): InferenceResult =
+        withContext(Dispatchers.IO) {
+            val bitmap = loadBitmapFromUri(savedUri)
+            val cropKey = mapCropNameToKey(cropName)
+            val response = DiseasePredictor_server.predict(
+                context = requireContext(),
+                bitmap = bitmap,
+                cropName = cropKey
+            )
+            mapServerResponse(response)
+        }
+
+    private fun mapServerResponse(response: PredictResponse): InferenceResult {
+        val top = response.predictions.firstOrNull()
+        val rawClassName = top?.className ?: response.disease
+        val rawConfidence = top?.confidence ?: response.confidence ?: 0f
+        val confidencePct = (rawConfidence.coerceIn(0f, 1f) * 100f).roundToInt()
+
+        if (rawClassName.isNullOrBlank()) {
+            return InferenceResult(
+                diagType = "UNKNOWN",
+                label = "",
+                confidence = confidencePct,
+                sickKeyLookup = ""
+            )
+        }
+
+        // 서버가 "cucumber_downy" 형식으로 주는 경우 → 기존 매핑 로직 재사용
+        if (rawClassName.contains("_")) {
+            val mapped = mapPrediction(rawClassName, cropName)
+            return InferenceResult(
+                diagType = mapped.diagType,
+                label = mapped.label,
+                confidence = confidencePct,
+                sickKeyLookup = mapped.sickKeyLookup
+            )
+        }
+
+        // 서버가 한글 병해명을 직접 주는 경우 → 그대로 사용
+        val isHealthy = rawClassName.equals("healthy", ignoreCase = true) ||
+                        rawClassName == "정상"
+        return if (isHealthy) {
+            InferenceResult(
+                diagType = "NORMAL",
+                label = "정상",
+                confidence = confidencePct,
+                sickKeyLookup = ""
+            )
+        } else {
+            InferenceResult(
+                diagType = "DISEASE",
+                label = rawClassName,
+                confidence = confidencePct,
+                sickKeyLookup = rawClassName
+            )
+        }
     }
 
     override fun onDestroy() {
