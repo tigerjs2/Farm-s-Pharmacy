@@ -26,7 +26,7 @@ data class PredictionResult(
 class DiseasePredictor(private val context: Context) {
 	companion object {
 		private const val DEFAULT_IMAGE_SIZE = 224
-		private const val DEFAULT_SAM_INPUT_SIZE = 512
+		private const val DEFAULT_SAM_INPUT_SIZE = 256
 		private val NORM_MEAN_RGB = floatArrayOf(0.485f, 0.456f, 0.406f)
 		private val NORM_STD_RGB = floatArrayOf(0.229f, 0.224f, 0.225f)
 		private val SAM_MEAN_RGB = floatArrayOf(123.675f, 116.28f, 103.53f)
@@ -42,8 +42,8 @@ class DiseasePredictor(private val context: Context) {
 
 	fun initModels(
 		secondStageAsset: String = "second_stage.pte",
-		samEncoderAsset: String = "sam2.1_t_encoder.pte",
-		samDecoderAsset: String = "sam2.1_t_box_decoder_512.pte",
+		samEncoderAsset: String = "sam2.1_t_encoder_256.pte",
+		samDecoderAsset: String = "sam2.1_t_box_decoder_256.pte",
 		classNamesAsset: String = "class_names.json",
 		cropsAsset: String = "crops.json",
 		embeddingShapeAsset: String = "embedding_shape.json",
@@ -153,8 +153,111 @@ class DiseasePredictor(private val context: Context) {
 			EValue.from(featS1),
 			EValue.from(boxTensor),
 		)
-		val maskTensor = decoderOutputs[0].toTensor()
+		val maskTensor = selectBestMaskTensor(
+			maskTensor = decoderOutputs[0].toTensor(),
+			scoreTensor = decoderOutputs.getOrNull(1)?.toTensor(),
+			bboxXyxy = scaledBox,
+			samInputSize = samInputSize,
+		)
 		return applyMaskToBitmap(bitmap, maskTensor)
+	}
+
+	private fun selectBestMaskTensor(
+		maskTensor: Tensor,
+		scoreTensor: Tensor?,
+		bboxXyxy: FloatArray,
+		samInputSize: Int,
+	): Tensor {
+		val shape = maskTensor.shape()
+		if (shape.size <= 2) {
+			return maskTensor
+		}
+
+		val (numMasks, h, w) = when (shape.size) {
+			4 -> Triple(shape[1].toInt(), shape[2].toInt(), shape[3].toInt())
+			3 -> Triple(shape[0].toInt(), shape[1].toInt(), shape[2].toInt())
+			else -> return maskTensor
+		}
+
+		if (numMasks <= 1) {
+			return maskTensor
+		}
+
+		val scores = scoreTensor?.getDataAsFloatArray()?.let { raw ->
+			if (raw.size == numMasks) {
+				raw
+			} else if (raw.size > numMasks) {
+				raw.copyOfRange(0, numMasks)
+			} else {
+				null
+			}
+		}
+		val data = maskTensor.getDataAsFloatArray()
+		val bbox = scaleBboxToMask(bboxXyxy, samInputSize, w, h)
+		val x1 = bbox[0].toInt().coerceIn(0, w)
+		val y1 = bbox[1].toInt().coerceIn(0, h)
+		val x2 = bbox[2].toInt().coerceIn(0, w)
+		val y2 = bbox[3].toInt().coerceIn(0, h)
+		val stride = h * w
+		var bestIdx = 0
+		var bestScore = Float.NEGATIVE_INFINITY
+		var bestHasInside = false
+
+		for (i in 0 until numMasks) {
+			val base = i * stride
+			var inside = 0
+			for (y in 0 until h) {
+				val row = base + y * w
+				for (x in 0 until w) {
+					val v = data[row + x]
+					if (v > 0f) {
+						if (x in x1 until x2 && y in y1 until y2) {
+							inside++
+						}
+					}
+				}
+			}
+
+			val rawScore = scores?.getOrNull(i) ?: 1f
+			val hasInside = inside > 0
+			val isBetter = if (hasInside && !bestHasInside) {
+				true
+			} else if (hasInside == bestHasInside) {
+				rawScore > bestScore
+			} else {
+				false
+			}
+
+			if (isBetter) {
+				bestScore = rawScore
+				bestIdx = i
+				bestHasInside = hasInside
+			}
+		}
+
+		val out = FloatArray(stride)
+		System.arraycopy(data, bestIdx * stride, out, 0, stride)
+		return Tensor.fromBlob(out, longArrayOf(1, h.toLong(), w.toLong()))
+	}
+
+	private fun scaleBboxToMask(
+		bbox: FloatArray,
+		srcSize: Int,
+		maskW: Int,
+		maskH: Int,
+	): FloatArray {
+		val scaleX = maskW.toFloat() / max(srcSize, 1)
+		val scaleY = maskH.toFloat() / max(srcSize, 1)
+		val x1 = bbox[0] * scaleX
+		val y1 = bbox[1] * scaleY
+		val x2 = bbox[2] * scaleX
+		val y2 = bbox[3] * scaleY
+		return floatArrayOf(
+			min(max(x1, 0f), maskW.toFloat()),
+			min(max(y1, 0f), maskH.toFloat()),
+			min(max(x2, 0f), maskW.toFloat()),
+			min(max(y2, 0f), maskH.toFloat()),
+		)
 	}
 
 	private fun selectSamFeatures(outputs: Array<EValue>, samInputSize: Int): Triple<Tensor, Tensor, Tensor> {
@@ -162,8 +265,8 @@ class DiseasePredictor(private val context: Context) {
 		var imageEmbed: Tensor? = null
 		var featS0: Tensor? = null
 		var featS1: Tensor? = null
-		val expectedS0 = if (samInputSize >= 1024) 256 else 128
-		val expectedS1 = if (samInputSize >= 1024) 128 else 64
+		val expectedS0 = max(samInputSize / 4, 1)
+		val expectedS1 = max(samInputSize / 8, 1)
 
 		for (t in tensors) {
 			val shape = t.shape()
