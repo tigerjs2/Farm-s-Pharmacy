@@ -54,7 +54,8 @@ class PhotoFragment : Fragment() {
 
     companion object {
         // true: 백엔드 서버(/predict) 사용 / false: 온디바이스 ExecuTorch 사용
-        const val USE_SERVER_PREDICTOR = true
+        const val USE_SERVER_PREDICTOR = false
+        private const val UNKNOWN_CONFIDENCE_THRESHOLD = 60
 
         fun newInstance(cropName: String): PhotoFragment {
             val fragment = PhotoFragment()
@@ -175,8 +176,16 @@ class PhotoFragment : Fragment() {
                                     val bbox = computeGuideBoxOnBitmap(bitmap.width, bitmap.height)
                                     val cropKey = mapCropNameToKey(cropName)
                                     val result = predictor.predictWithSam(bitmap, bbox, cropKey)
-                                    val mapped = mapPrediction(result.className, cropName)
                                     val confidence = (result.confidence * 100.0f).roundToInt()
+                                    val mapped = if (confidence < UNKNOWN_CONFIDENCE_THRESHOLD) {
+                                        MappedPrediction(
+                                            diagType = "UNKNOWN",
+                                            label = "",
+                                            sickKeyLookup = "",
+                                        )
+                                    } else {
+                                        mapPrediction(result.className, cropName)
+                                    }
                                     InferenceResult(
                                         diagType = mapped.diagType,
                                         label = mapped.label,
@@ -300,6 +309,15 @@ class PhotoFragment : Fragment() {
         val rawClassName = top?.className ?: response.disease
         val rawConfidence = top?.confidence ?: response.confidence ?: 0f
         val confidencePct = (rawConfidence.coerceIn(0f, 1f) * 100f).roundToInt()
+
+        if (confidencePct < UNKNOWN_CONFIDENCE_THRESHOLD) {
+            return InferenceResult(
+                diagType = "UNKNOWN",
+                label = "",
+                confidence = confidencePct,
+                sickKeyLookup = ""
+            )
+        }
 
         if (rawClassName.isNullOrBlank()) {
             return InferenceResult(
