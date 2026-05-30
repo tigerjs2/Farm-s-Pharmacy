@@ -67,7 +67,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="30dp"
         android:text="병"
-        android:textSize="28sp"
+        android:textSize="25sp"
         android:fontFamily="@font/paperlogy_7bold"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/imageCard" />
@@ -78,7 +78,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="-2dp"
         android:text="이 의심돼요"
-        android:textSize="28sp"
+        android:textSize="25sp"
         android:fontFamily="@font/paperlogy_7bold"
         app:layout_constraintStart_toEndOf="@id/diseaseNameTextView"
         app:layout_constraintBaseline_toBaselineOf="@id/diseaseNameTextView" />
@@ -108,7 +108,7 @@
         android:layout_marginStart="10dp"
         android:layout_marginEnd="10dp"
         android:text="설명"
-        android:textSize="20sp"
+        android:textSize="18sp"
         android:textColor="@color/black"
         android:lineSpacingExtra="4dp"
         android:fontFamily="@font/paperlogy_4regular"

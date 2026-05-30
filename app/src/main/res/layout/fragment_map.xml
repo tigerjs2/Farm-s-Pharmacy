@@ -252,7 +252,7 @@
                         android:layout_height="wrap_content"
                         android:text="0"
                         android:textColor="#4A4327"
-                        android:textSize="48sp"
+                        android:textSize="40sp"
                         android:fontFamily="@font/paperlogy_7bold"
                         android:includeFontPadding="false" />
 
