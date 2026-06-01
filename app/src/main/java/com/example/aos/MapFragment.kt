@@ -321,7 +321,7 @@ class MapFragment : Fragment() {
 
         val first = sorted[0]
         tvDamage1.text =
-            "·${first.first.label}도 인근 ${cropText} ${diseaseText} 피해 ${damageWord(first.second)}"
+            "·${first.first.label}도 인근 ${cropText} ${diseaseText} ${damageWord(first.second)}"
 
         if (sorted.size >= 2) {
             val second = sorted[1]
