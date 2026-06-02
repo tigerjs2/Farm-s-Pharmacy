@@ -1,6 +1,5 @@
 package com.example.aos
 
-import android.content.Context
 import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
@@ -17,7 +16,6 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
-import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -31,6 +29,8 @@ class ResultFragment : Fragment() {
         private const val ARG_LABEL      = "label"
         private const val ARG_CONFIDENCE = "confidence"
         private const val ARG_SICK_KEY   = "sickKey"
+        private const val ARG_DOC_ID     = "docId"
+        private const val ARG_IS_TREATED = "isTreated"
 
         fun newInstance(
             imageUri: String?,
@@ -38,7 +38,9 @@ class ResultFragment : Fragment() {
             diagType: String,
             label: String,
             confidence: Int,
-            sickKey: String
+            sickKey: String,
+            docId: String = "",
+            isTreated: Boolean = false
         ): ResultFragment {
             val fragment = ResultFragment()
             fragment.arguments = Bundle().apply {
@@ -48,6 +50,8 @@ class ResultFragment : Fragment() {
                 putString(ARG_LABEL,      label)
                 putInt(ARG_CONFIDENCE,    confidence)
                 putString(ARG_SICK_KEY,   sickKey)
+                putString(ARG_DOC_ID,     docId)
+                putBoolean(ARG_IS_TREATED, isTreated)
             }
             return fragment
         }
@@ -67,6 +71,8 @@ class ResultFragment : Fragment() {
         val label      = arguments?.getString(ARG_LABEL) ?: ""
         val confidence = arguments?.getInt(ARG_CONFIDENCE) ?: 0
         val sickKey    = arguments?.getString(ARG_SICK_KEY) ?: ""
+        val docId      = arguments?.getString(ARG_DOC_ID) ?: ""
+        val isTreated  = arguments?.getBoolean(ARG_IS_TREATED) ?: false
 
         // 로고 투톤
         val logoText = view.findViewById<TextView>(R.id.logoTop)
@@ -155,24 +161,9 @@ class ResultFragment : Fragment() {
         // ── 처치 완료 오버레이 토글 ──
         val overlayTreated = view.findViewById<View>(R.id.overlayTreated)
         val tvTreatedLabel = view.findViewById<TextView>(R.id.tvTreatedLabel)
-        val prefs = requireContext().getSharedPreferences("HistoryPrefs", Context.MODE_PRIVATE)
-        val gson  = Gson()
 
-        fun loadTreated(): Boolean {
-            val json  = prefs.getString("history_items", "[]") ?: "[]"
-            val items = gson.fromJson(json, Array<HistoryItem>::class.java)
-            return items.find { it.imageUri == imageUri }?.isTreated ?: false
-        }
-
-        fun saveTreated(treated: Boolean) {
-            val json  = prefs.getString("history_items", "[]") ?: "[]"
-            val items = gson.fromJson(json, Array<HistoryItem>::class.java).toMutableList()
-            val idx   = items.indexOfFirst { it.imageUri == imageUri }
-            if (idx != -1) {
-                items[idx] = items[idx].copy(isTreated = treated)
-                prefs.edit().putString("history_items", gson.toJson(items)).apply()
-            }
-        }
+        // 현재 상태를 메모리에서 관리 (Intent로 넘어온 isTreated가 Firestore 기준 최신값)
+        var currentTreated = isTreated
 
         fun applyOverlay(treated: Boolean) {
             val vis = if (treated) View.VISIBLE else View.GONE
@@ -181,13 +172,18 @@ class ResultFragment : Fragment() {
         }
 
         // 초기 상태 반영
-        applyOverlay(loadTreated())
+        applyOverlay(currentTreated)
 
-        // 사진 클릭 → 토글
+        // 사진 클릭 → 토글 후 Firestore 업데이트
         ivCaptured.setOnClickListener {
-            val next = !loadTreated()
-            saveTreated(next)
-            applyOverlay(next)
+            currentTreated = !currentTreated
+            applyOverlay(currentTreated)
+
+            if (docId.isNotBlank()) {
+                lifecycleScope.launch {
+                    DiagnosisRepository.updateHandled(docId, currentTreated)
+                }
+            }
         }
     }
 }

@@ -128,6 +128,8 @@ class HistoryActivity : AppCompatActivity() {
                 putExtra("label",      historyItem.diseaseName)
                 putExtra("confidence", historyItem.confidence)
                 putExtra("sickKey",    historyItem.sickKey)
+                putExtra("docId",      historyItem.docId)       // 추가
+                putExtra("isTreated",  historyItem.isTreated)   // 추가
             }
             startActivity(intent)
         }

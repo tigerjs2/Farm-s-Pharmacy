@@ -23,8 +23,12 @@ class ResultActivity : AppCompatActivity() {
         val label      = intent.getStringExtra("label") ?: ""
         val confidence = intent.getIntExtra("confidence", 0)
         val sickKey    = intent.getStringExtra("sickKey") ?: ""
+        val docId      = intent.getStringExtra("docId") ?: ""
+        val isTreated  = intent.getBooleanExtra("isTreated", false)
 
-        val adapter = ResultPagerAdapter(this, imageUri, cropName, diagType, label, confidence, sickKey)
+        val adapter = ResultPagerAdapter(
+            this, imageUri, cropName, diagType, label, confidence, sickKey, docId, isTreated
+        )
         viewPager.adapter = adapter
         viewPager.orientation = ViewPager2.ORIENTATION_VERTICAL
 
@@ -39,7 +43,9 @@ class ResultActivity : AppCompatActivity() {
         private val diagType: String,
         private val label: String,
         private val confidence: Int,
-        private val sickKey: String
+        private val sickKey: String,
+        private val docId: String,
+        private val isTreated: Boolean
     ) : FragmentStateAdapter(fa) {
 
         override fun getItemCount(): Int {
@@ -50,9 +56,13 @@ class ResultActivity : AppCompatActivity() {
 
         override fun createFragment(position: Int): Fragment {
             return when (position) {
-                0 -> ResultFragment.newInstance(imageUri, cropName, diagType, label, confidence, sickKey)
+                0 -> ResultFragment.newInstance(
+                    imageUri, cropName, diagType, label, confidence, sickKey, docId, isTreated
+                )
                 1 -> DetailFragment.newInstance(cropName, label, sickKey)
-                else -> ResultFragment.newInstance(imageUri, cropName, diagType, label, confidence, sickKey)
+                else -> ResultFragment.newInstance(
+                    imageUri, cropName, diagType, label, confidence, sickKey, docId, isTreated
+                )
             }
         }
     }

@@ -62,7 +62,6 @@ object DiagnosisRepository {
                         .ifBlank { extractStoragePathFromUrl(diagnosis.imageUrl) }
 
                     if (storagePath.isBlank()) {
-                        // 경로 추정 불가 시 안전을 위해 삭제하지 않고 유지
                         return@async diagnosis
                     }
 
@@ -84,23 +83,35 @@ object DiagnosisRepository {
         }
     }
 
+    /**
+     * Firestore의 isHandled 필드를 업데이트한다.
+     * docId를 직접 사용하므로 빠르고 정확하다.
+     */
+    suspend fun updateHandled(docId: String, isHandled: Boolean) {
+        if (docId.isBlank()) return
+        withContext(Dispatchers.IO) {
+            runCatching {
+                FirebaseFirestore.getInstance()
+                    .collection(COLLECTION)
+                    .document(docId)
+                    .update("isHandled", isHandled)
+                    .await()
+            }
+        }
+    }
+
     private suspend fun storageObjectExists(path: String): Boolean {
         return try {
             FirebaseStorage.getInstance().reference.child(path).metadata.await()
             true
         } catch (e: StorageException) {
             if (e.errorCode == StorageException.ERROR_OBJECT_NOT_FOUND) false
-            else true // 네트워크 등 일시적 오류 시 보수적으로 유지
+            else true
         } catch (e: Exception) {
             true
         }
     }
 
-    /**
-     * Firebase Storage 다운로드 URL에서 객체 경로를 추출한다.
-     * 예: https://firebasestorage.googleapis.com/v0/b/<bucket>/o/diagnoses%2Fuid%2F123.jpg?alt=media&token=...
-     *  →  diagnoses/uid/123.jpg
-     */
     fun extractStoragePathFromUrl(url: String): String {
         if (url.isBlank()) return ""
         val marker = "/o/"
@@ -152,6 +163,7 @@ object DiagnosisRepository {
             .format(Date(timestampMillis))
         return HistoryItem(
             id = timestampMillis.toInt(),
+            docId = docId,              // Firestore 문서 ID 전달
             imageUri = imageUrl,
             diseaseName = diseaseName,
             confidence = confidencePercent,
