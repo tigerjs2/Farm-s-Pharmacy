@@ -186,11 +186,13 @@ class DetailFragment : Fragment() {
             .trim()
 
         // 줄바꿈으로 먼저 분리, 없으면 마침표로 분리
-        val byNewline = cleaned.split("\n", "\r\n").map { it.trim() }.filter { it.length > 3 }
+        val byNewline = cleaned.split("\n", "\r\n")
+            .map { it.trim().trimStart('-', '–', '—', '·', '•').trim() }
+            .filter { it.length > 3 }
         if (byNewline.size > 1) return byNewline
 
         return cleaned.split(".")
-            .map { it.trim() }
+            .map { it.trim().trimStart('-', '–', '—', '·', '•').trim() }
             .filter { it.length > 3 }
             .map { if (!it.endsWith(".")) "$it." else it }
     }
