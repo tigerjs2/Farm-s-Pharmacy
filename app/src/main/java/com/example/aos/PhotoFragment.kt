@@ -54,7 +54,7 @@ class PhotoFragment : Fragment() {
 
     companion object {
         // true: 백엔드 서버(/predict) 사용 / false: 온디바이스 ExecuTorch 사용
-        const val USE_SERVER_PREDICTOR = false
+        const val USE_SERVER_PREDICTOR = true
         private const val UNKNOWN_CONFIDENCE_THRESHOLD = 60
 
         fun newInstance(cropName: String): PhotoFragment {
