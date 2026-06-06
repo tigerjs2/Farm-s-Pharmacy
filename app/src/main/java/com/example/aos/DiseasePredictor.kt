@@ -57,6 +57,10 @@ class DiseasePredictor(private val context: Context) {
 		loadEmbeddings(cropsAsset, embeddingDirAsset)
 	}
 
+	fun isInitialized(): Boolean = secondStageModule != null &&
+		samEncoderModule != null &&
+		samDecoderModule != null
+
 	fun predictWithSam(bitmap: Bitmap, bboxXyxy: FloatArray, cropName: String): PredictionResult {
 		val masked = applySamMask(bitmap, bboxXyxy, DEFAULT_SAM_INPUT_SIZE)
 		return predictMasked(masked, cropName)
