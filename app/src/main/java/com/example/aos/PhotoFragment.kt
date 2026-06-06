@@ -8,6 +8,7 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -169,30 +170,27 @@ class PhotoFragment : Fragment() {
                             val uid = FirebaseAuth.getInstance().currentUser?.uid ?: ""
 
                             val inferenceResult = if (USE_SERVER_PREDICTOR) {
-                                runServerInference(savedUri)
-                            } else {
-                                withContext(Dispatchers.Default) {
-                                    val bitmap = loadBitmapFromUri(savedUri)
-                                    val bbox = computeGuideBoxOnBitmap(bitmap.width, bitmap.height)
-                                    val cropKey = mapCropNameToKey(cropName)
-                                    val result = predictor.predictWithSam(bitmap, bbox, cropKey)
-                                    val confidence = (result.confidence * 100.0f).roundToInt()
-                                    val mapped = if (confidence < UNKNOWN_CONFIDENCE_THRESHOLD) {
-                                        MappedPrediction(
-                                            diagType = "UNKNOWN",
-                                            label = "",
-                                            sickKeyLookup = "",
-                                        )
-                                    } else {
-                                        mapPrediction(result.className, cropName)
-                                    }
-                                    InferenceResult(
-                                        diagType = mapped.diagType,
-                                        label = mapped.label,
-                                        confidence = confidence,
-                                        sickKeyLookup = mapped.sickKeyLookup
+                                // 서버 우선. 실패(네트워크/서버 오류 등) 시 온디바이스로 폴백한다.
+                                try {
+                                    runServerInference(savedUri)
+                                } catch (e: Exception) {
+                                    Log.w(
+                                        "PhotoFragment",
+                                        "서버 추론 실패 → 온디바이스 폴백: ${e.message}",
+                                        e
                                     )
+                                    // 개발 중 폴백 여부 확인용 안내 (디자인 영향 최소)
+                                    withContext(Dispatchers.Main) {
+                                        Toast.makeText(
+                                            requireContext(),
+                                            "서버 연결 실패 — 온디바이스로 진단합니다",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                    runOnDeviceInference(savedUri)
                                 }
+                            } else {
+                                runOnDeviceInference(savedUri)
                             }
 
                             // 1. Firebase Storage 업로드
@@ -307,6 +305,35 @@ class PhotoFragment : Fragment() {
                 bbox = bbox
             )
             mapServerResponse(response)
+        }
+
+    private suspend fun runOnDeviceInference(savedUri: android.net.Uri): InferenceResult =
+        withContext(Dispatchers.Default) {
+            // 서버 모드에서는 onViewCreated에서 initModels()를 건너뛰므로,
+            // 폴백으로 처음 진입할 때 여기서 1회 초기화한다.
+            if (!predictor.isInitialized()) {
+                predictor.initModels()
+            }
+            val bitmap = loadBitmapFromUri(savedUri)
+            val bbox = computeGuideBoxOnBitmap(bitmap.width, bitmap.height)
+            val cropKey = mapCropNameToKey(cropName)
+            val result = predictor.predictWithSam(bitmap, bbox, cropKey)
+            val confidence = (result.confidence * 100.0f).roundToInt()
+            val mapped = if (confidence < UNKNOWN_CONFIDENCE_THRESHOLD) {
+                MappedPrediction(
+                    diagType = "UNKNOWN",
+                    label = "",
+                    sickKeyLookup = "",
+                )
+            } else {
+                mapPrediction(result.className, cropName)
+            }
+            InferenceResult(
+                diagType = mapped.diagType,
+                label = mapped.label,
+                confidence = confidence,
+                sickKeyLookup = mapped.sickKeyLookup
+            )
         }
 
     private fun mapServerResponse(response: PredictResponse): InferenceResult {
