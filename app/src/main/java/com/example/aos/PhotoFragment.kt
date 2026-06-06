@@ -296,18 +296,25 @@ class PhotoFragment : Fragment() {
         withContext(Dispatchers.IO) {
             val bitmap = loadBitmapFromUri(savedUri)
             val cropKey = mapCropNameToKey(cropName)
+            // 온디바이스 경로와 동일하게 화면 가이드 박스 영역을 bbox로 전달한다.
+            val box = computeGuideBoxOnBitmap(bitmap.width, bitmap.height)
+            val bbox = "${box[0].roundToInt()},${box[1].roundToInt()}," +
+                       "${box[2].roundToInt()},${box[3].roundToInt()}"
             val response = DiseasePredictor_server.predict(
                 context = requireContext(),
                 bitmap = bitmap,
-                cropName = cropKey
+                cropName = cropKey,
+                bbox = bbox
             )
             mapServerResponse(response)
         }
 
     private fun mapServerResponse(response: PredictResponse): InferenceResult {
+        // 서버(/predict)는 pred_class / pred_confidence 로 응답한다.
+        // predictions[] / disease / confidence 는 레거시·온디바이스 호환용 fallback.
         val top = response.predictions.firstOrNull()
-        val rawClassName = top?.className ?: response.disease
-        val rawConfidence = top?.confidence ?: response.confidence ?: 0f
+        val rawClassName = top?.className ?: response.pred_class ?: response.disease
+        val rawConfidence = top?.confidence ?: response.pred_confidence ?: response.confidence ?: 0f
         val confidencePct = (rawConfidence.coerceIn(0f, 1f) * 100f).roundToInt()
 
         if (confidencePct < UNKNOWN_CONFIDENCE_THRESHOLD) {

@@ -67,7 +67,10 @@ data class PredictResponse(
     // Fallback fields for common response patterns
     val disease: String? = null,
     val confidence: Float? = null,
-    val description: String? = null
+    val description: String? = null,
+    val pred_index: Int? = null,
+    val pred_class: String? = null,
+    val pred_confidence: Float? = null
 )
 
 /**
@@ -97,6 +100,12 @@ class DiseasePredictor_server {
         private val okHttpClient: OkHttpClient by lazy {
             OkHttpClient.Builder()
                 .addInterceptor(loggingInterceptor)
+                .addInterceptor { chain ->                                    // ← 추가
+                    val request = chain.request().newBuilder()                // ← 추가
+                        .addHeader("ngrok-skip-browser-warning", "true")      // ← 추가
+                        .build()                                              // ← 추가
+                    chain.proceed(request)                                    // ← 추가
+                }                                                             // ← 추가
                 .connectTimeout(30, TimeUnit.SECONDS)
                 .readTimeout(60, TimeUnit.SECONDS)
                 .writeTimeout(60, TimeUnit.SECONDS)
@@ -118,12 +127,11 @@ class DiseasePredictor_server {
         /**
          * Sends captured bitmap + crop name to backend for disease prediction.
          *
-         * bbox is automatically calculated as the full image:
-         * "0,0,width-1,height-1"
-         *
          * @param context Android context (required for temporary file creation)
          * @param bitmap Captured image bitmap from camera
          * @param cropName Crop name selected by user (e.g., "tomato", "potato")
+         * @param bbox Bounding box in "x1,y1,x2,y2" format (guide-box region on the
+         *             bitmap). If null, falls back to the full image.
          * @return PredictResponse containing predictions from backend
          * @throws IOException Network or file I/O errors
          * @throws IllegalArgumentException Invalid input parameters
@@ -132,9 +140,10 @@ class DiseasePredictor_server {
         suspend fun predict(
             context: Context,
             bitmap: Bitmap,
-            cropName: String
+            cropName: String,
+            bbox: String? = null
         ): PredictResponse = withContext(Dispatchers.IO) {
-            
+
             // Validate inputs
             require(cropName.isNotBlank()) {
                 "Crop name must not be empty."
@@ -147,12 +156,12 @@ class DiseasePredictor_server {
                 )
             }
 
-            // Calculate bbox for full image
-            val bbox = "0,0,${bitmap.width - 1},${bitmap.height - 1}"
+            // Use the provided guide-box bbox, or fall back to the full image
+            val bboxStr = bbox ?: "0,0,${bitmap.width - 1},${bitmap.height - 1}"
             Log.d(
                 TAG,
                 "Preparing prediction request. cropName='$cropName', " +
-                "bitmap=${bitmap.width}x${bitmap.height}, bbox='$bbox'"
+                "bitmap=${bitmap.width}x${bitmap.height}, bbox='$bboxStr'"
             )
 
             var imageFile: File? = null
@@ -179,7 +188,7 @@ class DiseasePredictor_server {
                     .toRequestBody("text/plain".toMediaType())
 
                 // Create form field for bbox
-                val bboxBody = bbox
+                val bboxBody = bboxStr
                     .toRequestBody("text/plain".toMediaType())
 
                 Log.d(TAG, "Sending POST request to /predict...")
